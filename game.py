@@ -68,11 +68,11 @@ class Game:
 
         self.rounds: list[Round] = []
 
-    def reverse_pov(self, player: int, pov: int):
-        return self.r_povs[pov][player]
-
     def add_pov(self, player: int, pov: int):
         return self.povs[pov][player]
+
+    def reverse_pov(self, player: int, pov: int):
+        return self.r_povs[pov][player]
 
     def play(self):
         for _ in range(self.n_rounds):
@@ -87,8 +87,12 @@ class Game:
         """pre-generates audio for the game"""
         self.audio = None
 
-    def render():
-        pass
+    def render(self):
+        # init pygame
+        self.window = None
+        for round in self.rounds:
+            round.render()
+        # close pygame
 
 
 class Round:
@@ -138,6 +142,9 @@ class Round:
                 vote = game.reverse_pov(vote, pov=i)
             votes.append(vote)
         majority = self.majority = max(range(game.n_players), key=votes.count)
+        # need majority to accuse # FIXME
+        # then plurality among people who voted
+        # no one accused on tie
         if majority == game.spy:
             game.game_state = GameState.SPY_ACCUSED
         elif majority is not None:
@@ -186,6 +193,10 @@ class Round:
         #     self.conversation
         #     + "f A majority of people voted for {self.location}. The spy was {}"
         # )
+    def render(self):
+        game = self.game
+        print(game.window)
+        # render the round
 
 
 @dataclass

@@ -2,14 +2,23 @@ from abc import ABC, abstractmethod
 
 from data import *
 from util import *
+from llm import LLM
+from typing import Callable
 
 
 class Agent(ABC):
     """This is the base class for all agents. You should subclass this class and implement the abstract methods.
-    Locations are represented by the Location enum. Players are indexed from 0 to n_opponents."""
+    Locations are represented by the Location enum. Players are indexed from 0 to n_opponents.
+    """
 
     @abstractmethod
-    def __init__(self, location: Location | None, n_players: int, n_rounds: int):
+    def __init__(
+        self,
+        location: Location | None,
+        n_players: int,
+        n_rounds: int,
+        llm: LLM,
+    ) -> None:
         """Args:
         location (Location | None): the enum location for the game or None if the agent is the spy
         n_players (int): number of players including yourself
@@ -42,7 +51,7 @@ class Agent(ABC):
     @abstractmethod
     def analyze_response(
         self,
-        questioner: int, # FIXME: need to map self to 0
+        questioner: int,  # FIXME: need to map self to 0
         question: str,
         answerer: int,
         response: str,
@@ -79,17 +88,15 @@ class Agent(ABC):
     @abstractmethod
     def analyze_voting(self, votes: list[int | None]) -> None:
         """This method is called at the end of every round after all players have voted
-            # TODO
         Args:
             votes (list[int  |  None]): a list containing the vote for each player
                 Ex: [0, None, ...] means player 0 voted for you, player 1 did not vote, etc.
         """
         pass
 
-
     def validate(self) -> None:
-        """Checks agent inputs and outputs. Run this method to check if your agent is working correctly.
-        """
+        """Checks agent inputs and outputs. Run this method to check if your agent is working correctly."""
+        # TODO
         pass
 
 
