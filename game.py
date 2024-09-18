@@ -1,10 +1,13 @@
 import asyncio
 import random
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
 from agent import Agent
 from data import *
+from llm import *
+from util import *
 
 
 class GameState(Enum):
@@ -21,6 +24,7 @@ class Game:
     spy: int
     questioner: int
     players: list[Agent]
+    player_llms: list[LLMTokenCounterWrapper]
     game_state: GameState
 
     spy_scoring = {
@@ -52,10 +56,19 @@ class Game:
         self.spy = random.randint(0, n_players - 1)
         self.questioner = random.randint(0, n_players - 1)
         self.players = []
+        self.player_llms = []
+        self.game_state = GameState.RUNNING
+
+        llm = OpenAILLM()
+
         for i, agent_class in enumerate(agent_classes):
+            player_llm = LLMTokenCounterWrapper(llm)
             given_location = self.location if i != self.spy else None
-            agent = agent_class(given_location, n_players, n_rounds)
+            agent = agent_class(
+                given_location, n_players, n_rounds, llm=LLMProxy(player_llm)
+            )
             self.players.append(agent)
+            self.player_llms.append(player_llm)
 
         self.povs = [list(range(1, n_players))] * n_players
         for i, pov in enumerate(self.povs):
@@ -74,10 +87,10 @@ class Game:
     def reverse_pov(self, player: int, pov: int):
         return self.r_povs[pov][player]
 
-    def play(self):
+    async def play(self):
         for _ in range(self.n_rounds):
             round = Round(self)
-            round.play()
+            await round.play()
             self.rounds.append(round)
             if self.game_state != GameState.RUNNING:
                 return
@@ -104,29 +117,36 @@ class Round:
     spy_guess: Location | None
 
     player_votes: list[int | None]
-    majority: int | None
+    accused: int | None
 
     def __init__(self, game: Game):
         self.game = game
 
-    def play(self):
+    async def play(self):
         game = self.game
+        for llm in game.player_llms:
+            llm.reset_token_counter()
         questioner = self.questioner = game.questioner
 
-        answerer, question = game.players[questioner].ask_question()
+        # TODO: should we increase the token count for the questioner and answerer?
+        answerer, question = await game.players[questioner].ask_question()
         answerer = game.reverse_pov(answerer, pov=questioner)
-        answer = game.players[answerer].answer_question(question)
+        answer = await game.players[answerer].answer_question(question)
+        futures = []
         for player in range(game.n_players):
             q = game.add_pov(questioner, pov=player)
             a = game.add_pov(answerer, pov=player)
-            game.players[player].analyze_response(q, question, a, answer)
+            futures.append(
+                game.players[player].analyze_response(q, question, a, answer)
+            )
+        await asyncio.gather(*futures)
 
         self.question = question
         self.answer = answer
         game.questioner = self.answerer = answerer
 
         # spy voting
-        guess = self.spy_guess = game.players[game.spy].guess_location()
+        guess = self.spy_guess = await game.players[game.spy].guess_location()
         if guess == game.location:
             game.game_state = GameState.SPY_GUESSED_RIGHT
             return
@@ -135,27 +155,28 @@ class Round:
             return
 
         # player voting
-        votes = self.player_votes = []
-        for i in range(game.n_players):
-            vote = game.players[i].accuse_player()
+        votes = self.player_votes = await asyncio.gather(
+            [player.accuse_player() for player in game.players]
+        )
+
+        for i, vote in enumerate(votes):
             if vote is not None:
-                vote = game.reverse_pov(vote, pov=i)
-            votes.append(vote)
-        majority = self.majority = max(range(game.n_players), key=votes.count)
-        # need majority to accuse # FIXME
-        # then plurality among people who voted
-        # no one accused on tie
-        if majority == game.spy:
+                votes[i] = game.reverse_pov(vote, pov=i)
+
+        accused = self.accused = get_accused(votes, game.n_players)
+        if accused == game.spy:
             game.game_state = GameState.SPY_ACCUSED
-        elif majority is not None:
+        elif accused is not None:
             game.game_state = GameState.NON_SPY_ACCUSED
+        futures = []
         for i in range(game.n_players):
             votes_pov = [] * game.n_players
             for voter, votee in enumerate(votes_pov):
                 voter = game.add_pov(voter, pov=i)
                 votee = game.add_pov(votee, pov=i)
                 votes_pov[voter] = votee
-            game.players[i].analyze_voting(votes_pov)
+            futures.append(game.players[i].analyze_voting(votes_pov))
+        await asyncio.gather(*futures)
 
     def get_conversation(self) -> list[tuple[int, str]]:
         """returns the conversation as a list of tuples of player index and their message"""
@@ -165,22 +186,39 @@ class Round:
         output.append((self.questioner, f"Player {self.answerer + 1}, {self.question}"))
         output.append((self.answerer, self.answer))
         if self.spy_guess is not None:
-            msg = random.choice(SPY_MONOLOUGES).format(location=self.spy_guess.value)
+            # spy: I am the spy. Was it the {location}?
+            msg = random.choice(SPY_GUESS_QUESTION).format(
+                location=self.spy_guess.value
+            )
             output.append((game.spy, msg))
             responder = random.choice(list(set(range(game.n_players)) - {game.spy}))
             if game.game_state == GameState.SPY_GUESSED_RIGHT:
-                msg = random.choice(SPY_WON_RESPONSE)
+                # TODO
+                # random nonspy: yes that is right
+                msg = random.choice(SPY_GUESS_RIGHT_RESPONSE)
             else:
-                msg = random.choice(SPY_LOST_RESPONSE)
+                # TODO
+                # random nonspy: no it was the {location}
+                msg = random.choice(
+                    SPY_GUESS_WRONG_RESPONSE.format(location=game.location.value)
+                )
             output.append((responder, msg))
 
         # write logic for accusations here if there is a majority
-        if self.majority is not None:
+        if self.accused is not None:
+            # TODO
+            # one of the accusers: "I think it's player {spy} are you the spy?"
+            msg = random.choice(SPY_ACCUSED_QUESTION).format(spy=game.spy + 1)
             if game.game_state == GameState.SPY_ACCUSED:
-                msg = random.choice(SPY_ACCUSED_RESPONSE)
+                # TODO
+                # spy: I am the spy
+                msg = random.choice(SPY_ACCUSED_RIGHT_RESPONSE)
             else:
-                msg = random.choice(NON_SPY_ACCUSED_RESPONSE)
-            output.append((self.majority, msg))
+                # TODO
+                # accused: No, I am not the spy
+                msg = random.choice(SPY_ACCUSED_WRONG_ACCUSED_RESPONSE)
+                # spy: I am the spy
+                msg = random.choice(SPY_ACCUSED_WRONG_SPY_RESPONSE)
 
         return output
 
@@ -193,13 +231,13 @@ class Round:
         #     self.conversation
         #     + "f A majority of people voted for {self.location}. The spy was {}"
         # )
+
     def render(self):
         game = self.game
         print(game.window)
         # render the round
 
 
-@dataclass
 class Simulation:
     agent_classes: list[type[Agent]]
 

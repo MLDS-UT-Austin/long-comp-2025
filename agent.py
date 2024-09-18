@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
+from typing import Callable, final
 
 from data import *
-from util import *
-from llm import LLM
-from typing import Callable
+from llm import DummyLLM, LLMProxy, LLMTokenCounterWrapper
 
 
 class Agent(ABC):
     """This is the base class for all agents. You should subclass this class and implement the abstract methods.
-    Locations are represented by the Location enum. Players are indexed from 0 to n_opponents.
+    Note: Locations are represented by the Location enum
+    Note: Players are indexed from 0 to n_players - 1, inclusive with player 0 being you
     """
 
     @abstractmethod
@@ -17,7 +17,7 @@ class Agent(ABC):
         location: Location | None,
         n_players: int,
         n_rounds: int,
-        llm: LLM,
+        llm: LLMProxy,
     ) -> None:
         """Args:
         location (Location | None): the enum location for the game or None if the agent is the spy
@@ -27,7 +27,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def ask_question(self) -> tuple[int, str]:
+    async def ask_question(self) -> tuple[int, str]:
         """This method is called when it is the agent's turn to ask a question.
 
         Returns:
@@ -37,7 +37,7 @@ class Agent(ABC):
         return 1, "question here"
 
     @abstractmethod
-    def answer_question(self, question: str) -> str:
+    async def answer_question(self, question: str) -> str:
         """This method is called when the agent is asked a question.
 
         Args:
@@ -49,9 +49,9 @@ class Agent(ABC):
         return "answer here"
 
     @abstractmethod
-    def analyze_response(
+    async def analyze_response(
         self,
-        questioner: int,  # FIXME: need to map self to 0
+        questioner: int,
         question: str,
         answerer: int,
         response: str,
@@ -67,7 +67,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def guess_location(self) -> Location | None:
+    async def guess_location(self) -> Location | None:
         """This method is called every round when the agent is the spy
 
         Returns:
@@ -77,7 +77,7 @@ class Agent(ABC):
         return Location.AIRPLANE
 
     @abstractmethod
-    def accuse_player(self) -> int | None:
+    async def accuse_player(self) -> int | None:
         """This method is called at the end of every round
 
         Returns:
@@ -86,7 +86,7 @@ class Agent(ABC):
         return 1
 
     @abstractmethod
-    def analyze_voting(self, votes: list[int | None]) -> None:
+    async def analyze_voting(self, votes: list[int | None]) -> None:
         """This method is called at the end of every round after all players have voted
         Args:
             votes (list[int  |  None]): a list containing the vote for each player
@@ -94,11 +94,31 @@ class Agent(ABC):
         """
         pass
 
-    def validate(self) -> None:
+    @staticmethod
+    @final
+    def validate(agent: "Agent") -> None:
         """Checks agent inputs and outputs. Run this method to check if your agent is working correctly."""
         # TODO
         pass
 
 
 class ExampleAgent(Agent):
-    pass
+    def __init__(
+        self, location: Location | None, n_players: int, n_rounds: int, llm: LLMProxy
+    ) -> None:
+        self.location = location
+        self.n_players = n_players
+        self.n_rounds = n_rounds
+        self.llm = llm
+
+    async def ask_question(self) -> tuple[int, str]:
+        # use await in front of self.llm.prompt() because it is an async function
+        question = await self.llm.prompt(
+            f"I am playing spyfall at the {self.location}. Do not reveal the location. What is a good question to ask?"
+        )
+        return 1, question
+
+
+if __name__ == "__main__":
+    agent = ExampleAgent(Location.AIRPLANE, 4, 20, LLMProxy())
+    Agent.validate(agent)

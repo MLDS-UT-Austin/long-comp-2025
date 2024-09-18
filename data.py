@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Location(Enum):
     AIRPLANE = "Airplane"
     BANK = "Bank"
@@ -30,7 +31,7 @@ class Location(Enum):
     UNIVERSITY = "University"
 
 
-SPY_MONOLOUGES = (
+SPY_GUESS_QUESTION = (
     "Muah ha ha! I was the spy all along! Was it the {location}?",
     "Jokes on you all! I was the spy! Was the {location}.",
     "You never suspected me, did you? The spy was right under your noses! Was it the {location}?",
