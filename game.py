@@ -4,6 +4,8 @@ from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
+from tqdm import tqdm
+
 from agent import Agent
 from data import *
 from llm import *
@@ -26,6 +28,7 @@ class Game:
     players: list[Agent]
     player_llms: list[LLMTokenCounterWrapper]
     game_state: GameState
+    tqdm_bar: tqdm | None
 
     spy_scoring = {
         GameState.RUNNING: 0,
@@ -47,10 +50,13 @@ class Game:
     def __init__(
         self,
         agent_classes: list[type[Agent]],
+        llm: LLM,
         n_rounds: int = 20,
+        tqdm_bar: tqdm | None = None,
     ):
-        self.n_rounds = n_rounds
         n_players = self.n_players = len(agent_classes)
+        self.n_rounds = n_rounds
+        self.tqdm_bar = tqdm_bar
 
         self.location = random.choice(list(Location))
         self.spy = random.randint(0, n_players - 1)
@@ -58,8 +64,6 @@ class Game:
         self.players = []
         self.player_llms = []
         self.game_state = GameState.RUNNING
-
-        llm = OpenAILLM()
 
         for i, agent_class in enumerate(agent_classes):
             player_llm = LLMTokenCounterWrapper(llm)
@@ -70,16 +74,20 @@ class Game:
             self.players.append(agent)
             self.player_llms.append(player_llm)
 
-        self.povs = [list(range(1, n_players))] * n_players
+        self.povs = [list(range(1, n_players)) for _ in range(n_players)]
         for i, pov in enumerate(self.povs):
             random.shuffle(pov)
             pov.insert(i, 0)
-        self.r_povs = [[0] * (n_players - 1)] * n_players
+        self.r_povs = [[0] * (n_players) for _ in range(n_players)]
         for i in range(n_players):
             for player, player_w_pov in enumerate(self.povs[i]):
                 self.r_povs[i][player_w_pov] = player
 
         self.rounds: list[Round] = []
+        for i in range(n_players):  # TODO move to test cases
+            for j in range(n_players):
+                assert self.add_pov(self.reverse_pov(j, pov=i), pov=i) == j
+                assert self.reverse_pov(self.add_pov(j, pov=i), pov=i) == j
 
     def add_pov(self, player: int, pov: int):
         return self.povs[pov][player]
@@ -91,10 +99,19 @@ class Game:
         for _ in range(self.n_rounds):
             round = Round(self)
             await round.play()
+            if self.tqdm_bar:
+                self.tqdm_bar.update(1)
             self.rounds.append(round)
             if self.game_state != GameState.RUNNING:
                 return
+        if self.tqdm_bar:
+            self.tqdm_bar.update(self.n_rounds - len(self.rounds))
         self.game_state = GameState.NO_ONE_ACCUSED
+
+    def get_scores(self) -> list[int]:
+        scores = [self.player_scoring[self.game_state]] * self.n_players
+        scores[self.spy] = self.spy_scoring[self.game_state]
+        return scores
 
     def pregenerate_audio(self):
         """pre-generates audio for the game"""
@@ -130,8 +147,10 @@ class Round:
 
         # TODO: should we increase the token count for the questioner and answerer?
         answerer, question = await game.players[questioner].ask_question()
+        assert 1 <= answerer < game.n_players and isinstance(question, str)
         answerer = game.reverse_pov(answerer, pov=questioner)
         answer = await game.players[answerer].answer_question(question)
+        assert isinstance(answer, str)
         futures = []
         for player in range(game.n_players):
             q = game.add_pov(questioner, pov=player)
@@ -147,6 +166,7 @@ class Round:
 
         # spy voting
         guess = self.spy_guess = await game.players[game.spy].guess_location()
+        assert guess is None or isinstance(guess, Location)
         if guess == game.location:
             game.game_state = GameState.SPY_GUESSED_RIGHT
             return
@@ -156,8 +176,9 @@ class Round:
 
         # player voting
         votes = self.player_votes = await asyncio.gather(
-            [player.accuse_player() for player in game.players]
+            *[player.accuse_player() for player in game.players]
         )
+        assert all(1 <= vote < game.n_players for vote in votes if vote is not None)
 
         for i, vote in enumerate(votes):
             if vote is not None:
@@ -236,9 +257,3 @@ class Round:
         game = self.game
         print(game.window)
         # render the round
-
-
-class Simulation:
-    agent_classes: list[type[Agent]]
-
-    pass

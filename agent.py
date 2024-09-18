@@ -1,8 +1,17 @@
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Callable, final
 
 from data import *
 from llm import DummyLLM, LLMProxy, LLMTokenCounterWrapper
+
+AGENT_REGISTRY = {}
+
+
+def register_agent(cls):
+    """Type @register_agent on top of the class definition to register the agent"""
+    AGENT_REGISTRY[cls.__name__] = cls
+    return cls
 
 
 class Agent(ABC):
@@ -94,31 +103,31 @@ class Agent(ABC):
         """
         pass
 
-    @staticmethod
+    @classmethod
     @final
-    def validate(agent: "Agent") -> None:
-        """Checks agent inputs and outputs. Run this method to check if your agent is working correctly."""
-        # TODO
-        pass
+    def validate(cls) -> None:
+        """Quick check for return types and edge cases"""
+        agent = cls(Location.AIRPLANE, 5, 5, LLMProxy())
+        answerer, question = asyncio.run(agent.ask_question())
+        answer0 = asyncio.run(agent.answer_question("question here"))
+        answer1 = asyncio.run(agent.answer_question(""))
+        asyncio.run(agent.analyze_response(1, "question here", 2, "answer here"))
+        asyncio.run(agent.analyze_response(0, "question here", 3, "answer here"))
+        asyncio.run(agent.analyze_response(2, "", 0, ""))
+        guess = asyncio.run(agent.guess_location())
+        accusation = asyncio.run(agent.accuse_player())
+        asyncio.run(agent.analyze_voting([0, 1, None, None]))
+        assert isinstance(answerer, int)
+        assert 1 <= answerer < 5
+        assert isinstance(question, str)
+        assert isinstance(answer0, str)
+        assert isinstance(answer1, str)
+        assert isinstance(guess, Location) or guess is None
+        assert isinstance(accusation, int) or accusation is None
+        if accusation is not None:
+            assert 1 <= accusation < 5
 
+# @register_agent
+# class ExampleAgent(Agent):
+#     pass
 
-class ExampleAgent(Agent):
-    def __init__(
-        self, location: Location | None, n_players: int, n_rounds: int, llm: LLMProxy
-    ) -> None:
-        self.location = location
-        self.n_players = n_players
-        self.n_rounds = n_rounds
-        self.llm = llm
-
-    async def ask_question(self) -> tuple[int, str]:
-        # use await in front of self.llm.prompt() because it is an async function
-        question = await self.llm.prompt(
-            f"I am playing spyfall at the {self.location}. Do not reveal the location. What is a good question to ask?"
-        )
-        return 1, question
-
-
-if __name__ == "__main__":
-    agent = ExampleAgent(Location.AIRPLANE, 4, 20, LLMProxy())
-    Agent.validate(agent)
