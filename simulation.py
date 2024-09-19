@@ -9,7 +9,7 @@ from glob import glob
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from agent import *
 from game import *
@@ -61,14 +61,18 @@ class Simulation:
     def pickle_games(self):
         self.games, "must call run() first"
 
-        for i, game in enumerate(self.games):
+        for i, game in enumerate(
+            tqdm(self.games, desc="Pickling games", colour="green")
+        ):
             with open(f"{self.gave_save_dir}/game_{i}.pkl", "wb") as f:
                 pickle.dump(game, f)
 
     def load_games(self):
         games = []
 
-        for path in glob(f"{self.gave_save_dir}/*.pkl"):
+        for path in tqdm(
+            glob(f"{self.gave_save_dir}/*.pkl"), desc="Loading games", colour="green"
+        ):
             with open(path, "rb") as f:
                 games.append(pickle.load(f))
 
@@ -87,7 +91,7 @@ class Simulation:
 
         return df
 
-    def get_animation(
+    def _get_animation(
         self, duration: int = 10, fps: int = 30
     ) -> animation.FuncAnimation:
         df = self.get_scores()
@@ -115,8 +119,8 @@ class Simulation:
                 line.set_data(x, y)
 
             if i > 0:
-                ax.set_xlim(x.min(), x.max())
-                ax.set_ylim(0, df.values[:i].max())
+                ax.set_xlim(0, max(1, x.max()))
+                ax.set_ylim(0, max(1, df.values[:i].max()))
 
             return lines
 
@@ -131,14 +135,36 @@ class Simulation:
         return ani
 
     def visualize_scores(self, duration: int = 10, fps: int = 30):
-        ani = self.get_animation(duration, fps)
+        ani = self._get_animation(duration, fps)
 
         plt.show()
 
+    def save_visualization(self, filepath, duration: int = 10, fps: int = 30):
+        ani = self._get_animation(duration, fps)
+
+        ani.save(filepath, writer="ffmpeg")
+
 
 if __name__ == "__main__":
+    # Demo at Long Comp Intro Day
+    import_agent_from_file("agents/submission.py")
+    game = Game(list(AGENT_REGISTRY.values()), DummyLLM(), 20)
+    asyncio.run(game.play())
+    game.get_scores()
+    game.render()
+
+    # Long Comp Day
+    # Show teams over time
     sim = Simulation(DummyLLM())
     asyncio.run(sim.run())
-    # sim.pickle_games()
-    # print(sim.get_scores())
+    sim.pickle_games()
+    sim.load_games()
+    print(sim.get_scores())
     sim.visualize_scores()
+    sim.save_visualization("simulation.mp4")
+
+    # Show final teams
+    team_names = ["ExampleAgent", "TeamNameHere"]
+    player_classes = [AGENT_REGISTRY[name] for name in team_names]
+    game = Game(player_classes, DummyLLM(), 20)
+

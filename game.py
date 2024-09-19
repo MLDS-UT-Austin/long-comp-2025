@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 from agent import Agent
 from data import *
@@ -57,8 +57,8 @@ class Game:
     ):
         self.player_classes = player_classes
         n_players = self.n_players = len(player_classes)
+        assert n_players >= 2
         self.n_rounds = n_rounds
-
         self.location = random.choice(list(Location))
         self.spy = random.randint(0, n_players - 1)
         self.questioner = random.randint(0, n_players - 1)
@@ -69,10 +69,10 @@ class Game:
         for i, player_class in enumerate(player_classes):
             player_llm = TokenCounterWrapper(llm)
             given_location = self.location if i != self.spy else None
-            player = player_class(
+            player_instance = player_class(
                 given_location, n_players, n_rounds, llm=LLMProxy(player_llm)
             )
-            self.players.append(player)
+            self.players.append(player_instance)
             self.player_llms.append(player_llm)
 
         self.povs = [list(range(1, n_players)) for _ in range(n_players)]
