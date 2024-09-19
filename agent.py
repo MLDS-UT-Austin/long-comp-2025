@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, final
 
 from data import Location
-from llm import DummyLLM, LLMProxy, LLMTokenCounterWrapper
+from llm import DummyLLM, LLMProxy, TokenCounterWrapper
 
 AGENT_REGISTRY = {}
 
@@ -130,6 +130,7 @@ class Agent(ABC):
         if accusation is not None:
             assert 1 <= accusation < 5
 
+
 # TODO: rewrite this as one of our agents
 @register_agent
 class ExampleAgent(Agent):
@@ -168,5 +169,3 @@ class ExampleAgent(Agent):
 
     async def analyze_voting(self, votes: list[int | None]) -> None:
         pass
-
-

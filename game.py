@@ -26,7 +26,7 @@ class Game:
     spy: int
     questioner: int
     players: list[Agent]
-    player_llms: list[LLMTokenCounterWrapper]
+    player_llms: list[TokenCounterWrapper]
     game_state: GameState
     tqdm_bar: tqdm | None = None
     n_players: int
@@ -65,7 +65,7 @@ class Game:
         self.game_state = GameState.RUNNING
 
         for i, agent_class in enumerate(agent_classes):
-            player_llm = LLMTokenCounterWrapper(llm)
+            player_llm = TokenCounterWrapper(llm)
             given_location = self.location if i != self.spy else None
             agent = agent_class(
                 given_location, n_players, n_rounds, llm=LLMProxy(player_llm)

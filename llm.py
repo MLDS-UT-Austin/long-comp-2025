@@ -10,7 +10,7 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 
-class LlamaLLM:
+class LLM:
     def __init__(self, model_name: str = "meta-llama/Llama-8"):
         self.model_name = model_name
         self.tokenizer = LlamaTokenizer.from_pretrained(model_name)
@@ -26,7 +26,7 @@ class LlamaLLM:
         return len(tokens)
 
 
-class DummyLLM(LlamaLLM):
+class DummyLLM(LLM):
     """A dummy LLM for testing"""
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
@@ -36,7 +36,7 @@ class DummyLLM(LlamaLLM):
         return np.zeros(512)
 
 
-class CopyCatLLM(LlamaLLM):
+class CopyCatLLM(LLM):
     """A LLM for estimating token usage"""
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
@@ -46,10 +46,10 @@ class CopyCatLLM(LlamaLLM):
         return np.zeros(512)
 
 
-class TokenCounterWrapper(LlamaLLM):
+class TokenCounterWrapper(LLM):
     """A wrapper around an LLM that keeps track of the number of tokens used per round"""
 
-    def __init__(self, llm: LlamaLLM, token_limit: int = 4096):
+    def __init__(self, llm: LLM, token_limit: int = 4096):
         """_summary_
 
         Args:
