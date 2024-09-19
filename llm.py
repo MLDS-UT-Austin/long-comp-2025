@@ -63,6 +63,12 @@ class LLMTokenCounterWrapper(LLM):
     """A wrapper around an LLM that keeps track of the number of tokens used per round"""
 
     def __init__(self, llm: LLM, token_limit: int = 4096):
+        """_summary_
+
+        Args:
+            llm (LLM): the llm that is wrapped
+            token_limit (int): the maximum number of tokens that can be used per agent per round
+        """
         self.llm = llm
         self.token_limit = token_limit
         self.remaining_tokens = token_limit

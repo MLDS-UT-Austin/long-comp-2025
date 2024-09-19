@@ -2,7 +2,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Callable, final
 
-from data import *
+from data import Location
 from llm import DummyLLM, LLMProxy, LLMTokenCounterWrapper
 
 AGENT_REGISTRY = {}
@@ -15,9 +15,10 @@ def register_agent(cls):
 
 
 class Agent(ABC):
-    """This is the base class for all agents. You should subclass this class and implement the abstract methods.
-    Note: Locations are represented by the Location enum
-    Note: Players are indexed from 0 to n_players - 1, inclusive with player 0 being you
+    """This is the base class for all agents
+    You should subclass this class and implement the abstract methods in submission.py
+    Note: Throughout this class, players are indexed from 0 to n_players - 1, inclusive with player 0 being you
+          also, locations are represented by the Location enum
     """
 
     @abstractmethod
@@ -32,6 +33,8 @@ class Agent(ABC):
         location (Location | None): the enum location for the game or None if the agent is the spy
         n_players (int): number of players including yourself
         n_rounds (int): total number rounds. Each round includes a question, answer, and a vote.
+        llm (LLMProxy): allows you to prompt the llm and get embeddings. You are given # TODO tokens per round.
+            If you exceed the token limit, get_prompt will return an empty string and get_embeddings will return a 0 array.
         """
         pass
 
