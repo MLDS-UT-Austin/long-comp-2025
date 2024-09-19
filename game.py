@@ -117,21 +117,6 @@ class Game:
         ]
         return scores
 
-    def get_conversation(self) -> list[tuple[int, str]]:
-        """returns the conversation as a list of tuples of player index and their message"""
-        output = []
-        for round in self.rounds:
-            output += round.get_conversation()
-        if self.game_state == GameState.NO_ONE_INDICTED:
-            msg = random.choice(SPY_REVEAL)
-            output.append((self.spy, msg))
-        return output
-
-    def pregenerate_audio(self):
-        """pre-generates audio for the game"""
-        conversation = self.get_conversation()
-        self.audio = None
-
     def render(self):
         # init pygame
         self.window = None
@@ -260,15 +245,11 @@ class Round:
 
         return output
 
-        # self.conversation = (
-        #     self.converation
-        #     + "f Player {self.current_player} asked player{answerer}: {question}"
-        # )
-        # self.converation = self.conversation + "f Player {answerer} responded {answer}."
-        # self.converation = (
-        #     self.conversation
-        #     + "f A majority of people voted for {self.location}. The spy was {}"
-        # )
+
+    def pregenerate_audio(self):
+        """pre-generates audio for the game"""
+        conversation = self.get_conversation()
+        self.audio: list[int, np.ndarray] = None
 
     def render(self):
         game = self.game
