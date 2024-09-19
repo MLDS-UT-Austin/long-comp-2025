@@ -127,7 +127,43 @@ class Agent(ABC):
         if accusation is not None:
             assert 1 <= accusation < 5
 
-# @register_agent
-# class ExampleAgent(Agent):
-#     pass
+# TODO: rewrite this as one of our agents
+@register_agent
+class ExampleAgent(Agent):
+    def __init__(
+        self,
+        location: Location | None,
+        n_players: int,
+        n_rounds: int,
+        llm: LLMProxy,
+    ) -> None:
+        self.location = location
+        self.n_players = n_players
+        self.n_rounds = n_rounds
+        self.llm = llm
+
+    async def ask_question(self) -> tuple[int, str]:
+        return 1, "question"
+
+    async def answer_question(self, question: str) -> str:
+        return "answer"
+
+    async def analyze_response(
+        self,
+        questioner: int,
+        question: str,
+        answerer: int,
+        response: str,
+    ) -> None:
+        pass
+
+    async def guess_location(self) -> Location | None:
+        return None
+
+    async def accuse_player(self) -> int | None:
+        return None
+
+    async def analyze_voting(self, votes: list[int | None]) -> None:
+        pass
+
 
