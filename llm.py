@@ -1,9 +1,11 @@
 import os
 
 import numpy as np
-import tiktoken
 from dotenv import load_dotenv
-from transformers import LlamaTokenizer
+from transformers import AutoTokenizer
+
+model_name = 'facebook/llama-7b'
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Please set your OpenAI API key in the .env file: "API_KEY=your-api-key"
 load_dotenv()
@@ -11,9 +13,9 @@ API_KEY = os.getenv("API_KEY")
 
 
 class LLM:
-    def __init__(self, model_name: str = "meta-llama/Llama-8"):
-        self.model_name = model_name
-        self.tokenizer = LlamaTokenizer.from_pretrained(model_name)
+    def __init__(self):
+        # Use NousResearch bc it doesn't have retricted access
+        self.tokenizer = AutoTokenizer.from_pretrained("NousResearch/Meta-Llama-3-8B-Instruct")
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
         raise NotImplementedError()  # TODO
@@ -22,7 +24,8 @@ class LLM:
         raise NotImplementedError()  # TODO
 
     def count_tokens(self, input: str) -> int:
-        tokens = self.tokenizer.tokenize(input)
+        tokens = tokenizer(input).encodings[0].tokens
+        # print(tokens)
         return len(tokens)
 
 
