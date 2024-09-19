@@ -17,11 +17,11 @@ This is the repository for the 2025 MLDS Long Competition where teams will be co
 1. **<u>Questioning</u>**: A random player starts by asking another player a question about the location. The player who answers the question will be the one to ask the question in the next round.
 2. **<u>Questioning Analysis</u>**: All players are given time to analyze the question/answer.
 3. **<u>Guessing</u>**: The spy may guess the location. This will end the game.
-4. **<u>Accusation</u>**: Players may chose to accuse another player of being the spy. Sucessfully indicting a player will end the game.In order for a player to be indicted, the following conditions must be met:
+4. **<u>Accusation</u>**: Players may accuse another player of being the spy. Successfully indicting a player will end the game. For a player to be indicted, the following conditions must be met:
    * A majority of the players must accuse *any* player.
    * One player must get a plurality of the votes. If a tie occurs, nothing happens.
 
-   Ex: If 2 players accuse player A, 1 player accuses player B, 1 player accuses player C, and 3 players do not vote, player A is successfully indicted.
+    Ex: If 2 players accuse player A, 1 player accuses player B, 1 player accuses player C, and 3 players do not vote, player A is successfully indicted.
 
 5. **<u>Voting Analysis</u>**: Players can see who voted for who and are given time to analyze the votes.
 
@@ -33,8 +33,8 @@ This is the repository for the 2025 MLDS Long Competition where teams will be co
 
 **<u>Scoring</u>**:
 
-* **Spy Victory:** The spy earns 2 points if no one is indicted of being the spy, 4 points if a non-spy player is indicted of being a spy, and 4 points if the spy stops the game and successfully guesses the location.
-* **Non-Spy Victory:** Each non-spy player earns 1 point.
+* **<u>Spy Victory</u>**: The spy earns 2 points if no one is indicted of being the spy, 4 points if a non-spy player is indicted of being the spy, and 4 points if the spy stops the game and successfully guesses the location.
+* **<u>Non-Spy Victory</u>**: Each non-spy player earns 1 point.
 
 ## Getting Started
 
@@ -45,18 +45,18 @@ To run this project locally with conda, run the following commands:
 ``` bash
 conda create -n long_comp python==3.10.13
 conda activate long_comp
-pip install tqdm python-dotenv numpy tiktoken transformers pygame
+pip install tqdm python-dotenv numpy tiktoken transformers pygame sentencepiece
 ```
 
-If you do not have conda, you can install the VSCode Extension `Python Environment Manager`, which should prompt you to install conda.
+If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager`, which should prompt you to install conda.
 
 **<u>Setting up Your LLM API Key</u>**:
 
 We will be using [together.ai](https://api.together.ai) which offers a $5 credit (~50M tokens) for new users, no credit card required.
 
-To get your API key, click on the link above to create an account. A pop-up will appear with your API key.
+To get your API key, click the link above to create an account. A pop-up will appear with your API key.
 
-Next, create a file named `.env` in the root directory and add the following line:
+Next, create a file named `.env` in the root directory with the following text:
 
 ``` text
 API_KEY = <your_api_key>

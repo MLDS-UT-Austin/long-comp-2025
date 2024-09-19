@@ -4,7 +4,7 @@ import numpy as np
 from dotenv import load_dotenv
 from transformers import AutoTokenizer
 
-model_name = 'facebook/llama-7b'
+model_name = "facebook/llama-7b"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Please set your OpenAI API key in the .env file: "API_KEY=your-api-key"
@@ -15,7 +15,9 @@ API_KEY = os.getenv("API_KEY")
 class LLM:
     def __init__(self):
         # Use NousResearch bc it doesn't have retricted access
-        self.tokenizer = AutoTokenizer.from_pretrained("NousResearch/Meta-Llama-3-8B-Instruct")
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            "NousResearch/Meta-Llama-3-8B-Instruct"
+        )
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
         raise NotImplementedError()  # TODO
