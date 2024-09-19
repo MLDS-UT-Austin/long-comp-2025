@@ -25,6 +25,7 @@ class Game:
     location: Location
     spy: int
     questioner: int
+    player_classes: list[type[Agent]]
     players: list[Agent]
     player_llms: list[TokenCounterWrapper]
     game_state: GameState
@@ -50,11 +51,12 @@ class Game:
 
     def __init__(
         self,
-        agent_classes: list[type[Agent]],
+        player_classes: list[type[Agent]],
         llm: LLM,
         n_rounds: int = 20,
     ):
-        n_players = self.n_players = len(agent_classes)
+        self.player_classes = player_classes
+        n_players = self.n_players = len(player_classes)
         self.n_rounds = n_rounds
 
         self.location = random.choice(list(Location))
@@ -64,13 +66,13 @@ class Game:
         self.player_llms = []
         self.game_state = GameState.RUNNING
 
-        for i, agent_class in enumerate(agent_classes):
+        for i, player_class in enumerate(player_classes):
             player_llm = TokenCounterWrapper(llm)
             given_location = self.location if i != self.spy else None
-            agent = agent_class(
+            player = player_class(
                 given_location, n_players, n_rounds, llm=LLMProxy(player_llm)
             )
-            self.players.append(agent)
+            self.players.append(player)
             self.player_llms.append(player_llm)
 
         self.povs = [list(range(1, n_players)) for _ in range(n_players)]
@@ -107,14 +109,9 @@ class Game:
             self.tqdm_bar.update(self.n_rounds - len(self.rounds))
         self.game_state = GameState.NO_ONE_INDICTED
 
-    def get_scores(self) -> dict[str, int]:
-        scores = {
-            agent.__class__.__name__: self.nonspy_scoring[self.game_state]
-            for agent in self.players
-        }
-        scores[self.players[self.spy].__class__.__name__] = self.spy_scoring[
-            self.game_state
-        ]
+    def get_scores(self) -> list[int]:
+        scores = [self.nonspy_scoring[self.game_state]] * self.n_players
+        scores[self.spy] = self.spy_scoring[self.game_state]
         return scores
 
     def render(self):
@@ -244,7 +241,6 @@ class Round:
                 output.append((game.spy, msg))
 
         return output
-
 
     def pregenerate_audio(self):
         """pre-generates audio for the game"""

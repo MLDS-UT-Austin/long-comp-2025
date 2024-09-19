@@ -2,10 +2,7 @@ import os
 
 import numpy as np
 from dotenv import load_dotenv
-from transformers import AutoTokenizer
-
-model_name = "facebook/llama-7b"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+from transformers import AutoTokenizer  # type: ignore
 
 # Please set your OpenAI API key in the .env file: "API_KEY=your-api-key"
 load_dotenv()

@@ -1,0 +1,9 @@
+tqdm
+python-dotenv
+numpy
+tiktoken
+transformers
+pygame
+sentencepiece
+matplotlib
+pandas

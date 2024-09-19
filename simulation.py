@@ -7,6 +7,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from glob import glob
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import pandas as pd
+
 from agent import *
 from game import *
 from llm import *
@@ -35,14 +39,14 @@ class Simulation:
                 raise e
 
     async def run(self):
-        agent_classes = [
+        player_classes = [
             random.sample(list(self.agent_registry.values()), self.team_size)
             for _ in range(self.n_games)
         ]
         tqdm_bar = tqdm(
             total=self.n_games * self.n_rounds, desc="Rounds", colour="green"
         )
-        games = [Game(agents, self.llm, self.n_rounds) for agents in agent_classes]
+        games = [Game(agents, self.llm, self.n_rounds) for agents in player_classes]
         for game in games:
             game.tqdm_bar = tqdm_bar
 
@@ -70,18 +74,61 @@ class Simulation:
 
         self.games = games
 
-    def get_scores(self) -> dict[str, list[int]]:
+    def get_scores(self) -> pd.DataFrame:
         self.games, "must call run() first"
-        output = defaultdict(list)
-        for game in self.games:
+        df = pd.DataFrame(index=range(self.n_games), columns=self.agent_registry.keys())
+
+        for i, game in enumerate(self.games):
             scores = game.get_scores()
-            for name, score in scores.items():
-                output[name].append(score)
-        return output
+            agent_names = [
+                player_class.__name__ for player_class in game.player_classes
+            ]
+            df.loc[i, agent_names] = scores
+
+        return df
+
+    def visualize_scores(self, duration: int = 10, fps: int = 30):
+        df = self.get_scores()
+        df = df.cumsum(axis=0)
+
+        plt.rcParams["toolbar"] = "None"
+
+        fig, ax = plt.subplots()
+        lines = [ax.plot([], [], lw=2, label=col)[0] for col in df.columns]
+        ax.set_xlabel("Game")
+        ax.set_ylabel("Cumulative Score")
+        ax.set_title("Results")
+        ax.legend(loc="upper left")
+
+        def animate(animation_i):
+            percent_complete = animation_i / (duration * fps)
+            i = int(percent_complete * len(df))
+
+            x = df.index[:i]
+            for j, line in enumerate(lines):
+                y = df[df.columns[j]][:i]
+                line.set_data(x, y)
+
+            if i > 0:
+                ax.set_xlim(x.min(), x.max())
+                ax.set_ylim(0, df.values[:i].max())
+
+            return lines
+
+        ani = animation.FuncAnimation(
+            fig,
+            animate,
+            frames=duration * fps,
+            interval=1000 / fps,
+            repeat=False,
+        )
+
+        plt.show()
 
 
 if __name__ == "__main__":
     sim = Simulation(DummyLLM())
     asyncio.run(sim.run())
-    sim.pickle_games()
-    print(sim.get_scores())
+    # sim.pickle_games()
+    # print(sim.get_scores())
+    sim.visualize_scores()
