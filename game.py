@@ -16,9 +16,9 @@ class GameState(Enum):
     RUNNING = "ongoing"
     SPY_GUESSED_RIGHT = "spy guessed right"
     SPY_GUESSED_WRONG = "spy guessed wrong"
-    SPY_ACCUSED = "spy accused"
-    NON_SPY_ACCUSED = "non-spy accused"
-    NO_ONE_ACCUSED = "no one accused"
+    SPY_INDICTED = "spy indicted"
+    NON_SPY_INDICTED = "non-spy indicted"
+    NO_ONE_INDICTED = "no one indicted"
 
 
 class Game:
@@ -35,17 +35,17 @@ class Game:
         GameState.RUNNING: 0,
         GameState.SPY_GUESSED_RIGHT: 4,
         GameState.SPY_GUESSED_WRONG: 0,
-        GameState.SPY_ACCUSED: 0,
-        GameState.NON_SPY_ACCUSED: 4,
-        GameState.NO_ONE_ACCUSED: 2,
+        GameState.SPY_INDICTED: 0,
+        GameState.NON_SPY_INDICTED: 4,
+        GameState.NO_ONE_INDICTED: 2,
     }
     nonspy_scoring = {
         GameState.RUNNING: 0,
         GameState.SPY_GUESSED_RIGHT: 0,
         GameState.SPY_GUESSED_WRONG: 1,
-        GameState.SPY_ACCUSED: 1,
-        GameState.NON_SPY_ACCUSED: 0,
-        GameState.NO_ONE_ACCUSED: 0,
+        GameState.SPY_INDICTED: 1,
+        GameState.NON_SPY_INDICTED: 0,
+        GameState.NO_ONE_INDICTED: 0,
     }
 
     def __init__(
@@ -105,7 +105,7 @@ class Game:
                 return
         if self.tqdm_bar is not None:
             self.tqdm_bar.update(self.n_rounds - len(self.rounds))
-        self.game_state = GameState.NO_ONE_ACCUSED
+        self.game_state = GameState.NO_ONE_INDICTED
 
     def get_scores(self) -> dict[str, int]:
         scores = {
@@ -117,8 +117,19 @@ class Game:
         ]
         return scores
 
+    def get_conversation(self) -> list[tuple[int, str]]:
+        """returns the conversation as a list of tuples of player index and their message"""
+        output = []
+        for round in self.rounds:
+            output += round.get_conversation()
+        if self.game_state == GameState.NO_ONE_INDICTED:
+            msg = random.choice(SPY_REVEAL)
+            output.append((self.spy, msg))
+        return output
+
     def pregenerate_audio(self):
         """pre-generates audio for the game"""
+        conversation = self.get_conversation()
         self.audio = None
 
     def render(self):
@@ -138,7 +149,7 @@ class Round:
     spy_guess: Location | None
 
     player_votes: list[int | None]
-    accused: int | None
+    indicted: int | None
 
     def __init__(self, game: Game):
         self.game = game
@@ -188,11 +199,11 @@ class Round:
             if vote is not None:
                 votes[i] = game.reverse_pov(vote, pov=i)
 
-        accused = self.accused = get_accused(votes, game.n_players)
-        if accused == game.spy:
-            game.game_state = GameState.SPY_ACCUSED
-        elif accused is not None:
-            game.game_state = GameState.NON_SPY_ACCUSED
+        indicted = self.indicted = count_votes(votes, game.n_players)
+        if indicted == game.spy:
+            game.game_state = GameState.SPY_INDICTED
+        elif indicted is not None:
+            game.game_state = GameState.NON_SPY_INDICTED
         futures = []
         for i in range(game.n_players):
             votes_pov = [] * game.n_players
@@ -212,38 +223,40 @@ class Round:
         output.append((self.answerer, self.answer))
         if self.spy_guess is not None:
             # spy: I am the spy. Was it the {location}?
-            msg = random.choice(SPY_GUESS_QUESTION).format(
+            msg = random.choice(SPY_REVEAL_AND_GUESS).format(
                 location=self.spy_guess.value
             )
             output.append((game.spy, msg))
             responder = random.choice(list(set(range(game.n_players)) - {game.spy}))
             if game.game_state == GameState.SPY_GUESSED_RIGHT:
-                # TODO
                 # random nonspy: yes that is right
                 msg = random.choice(SPY_GUESS_RIGHT_RESPONSE)
             else:
-                # TODO
-                # random nonspy: no it was the {location}
-                msg = random.choice(
-                    SPY_GUESS_WRONG_RESPONSE.format(location=game.location.value)
+                msg = random.choice(SPY_GUESS_WRONG_RESPONSE).format(
+                    location=game.location.value
                 )
+
             output.append((responder, msg))
 
-        # write logic for accusations here if there is a majority
-        if self.accused is not None:
-            # TODO
+        # write logic for indictions here if there is a majority
+        if self.indicted is not None:
             # one of the accusers: "I think it's player {spy} are you the spy?"
-            msg = random.choice(SPY_ACCUSED_QUESTION).format(spy=game.spy + 1)
-            if game.game_state == GameState.SPY_ACCUSED:
-                # TODO
+            accuser = random.choice(
+                [i for i, x in enumerate(self.player_votes) if x == game.spy]
+            )
+            msg = random.choice(ACCUSATION).format(spy=game.spy + 1)
+            output.append((accuser, msg))
+            if game.game_state == GameState.SPY_INDICTED:
                 # spy: I am the spy
-                msg = random.choice(SPY_ACCUSED_RIGHT_RESPONSE)
+                msg = random.choice(SPY_INDICTED_RESPONSE)
+                output.append((game.spy, msg))
             else:
-                # TODO
-                # accused: No, I am not the spy
-                msg = random.choice(SPY_ACCUSED_WRONG_ACCUSED_RESPONSE)
+                # indicted: No, I am not the spy
+                msg = random.choice(NON_SPY_INDICTED_RESPONSE)
+                output.append((self.indicted, msg))
                 # spy: I am the spy
-                msg = random.choice(SPY_ACCUSED_WRONG_SPY_RESPONSE)
+                msg = random.choice(SPY_REVEAL)
+                output.append((game.spy, msg))
 
         return output
 
