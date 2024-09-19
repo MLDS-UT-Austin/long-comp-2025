@@ -28,7 +28,8 @@ class Game:
     players: list[Agent]
     player_llms: list[LLMTokenCounterWrapper]
     game_state: GameState
-    tqdm_bar: tqdm | None
+    tqdm_bar: tqdm | None = None
+    n_players: int
 
     spy_scoring = {
         GameState.RUNNING: 0,
@@ -38,7 +39,7 @@ class Game:
         GameState.NON_SPY_ACCUSED: 4,
         GameState.NO_ONE_ACCUSED: 2,
     }
-    player_scoring = {
+    nonspy_scoring = {
         GameState.RUNNING: 0,
         GameState.SPY_GUESSED_RIGHT: 0,
         GameState.SPY_GUESSED_WRONG: 1,
@@ -52,11 +53,9 @@ class Game:
         agent_classes: list[type[Agent]],
         llm: LLM,
         n_rounds: int = 20,
-        tqdm_bar: tqdm | None = None,
     ):
         n_players = self.n_players = len(agent_classes)
         self.n_rounds = n_rounds
-        self.tqdm_bar = tqdm_bar
 
         self.location = random.choice(list(Location))
         self.spy = random.randint(0, n_players - 1)
@@ -99,18 +98,23 @@ class Game:
         for _ in range(self.n_rounds):
             round = Round(self)
             await round.play()
-            if self.tqdm_bar:
+            if self.tqdm_bar is not None:
                 self.tqdm_bar.update(1)
             self.rounds.append(round)
             if self.game_state != GameState.RUNNING:
                 return
-        if self.tqdm_bar:
+        if self.tqdm_bar is not None:
             self.tqdm_bar.update(self.n_rounds - len(self.rounds))
         self.game_state = GameState.NO_ONE_ACCUSED
 
-    def get_scores(self) -> list[int]:
-        scores = [self.player_scoring[self.game_state]] * self.n_players
-        scores[self.spy] = self.spy_scoring[self.game_state]
+    def get_scores(self) -> dict[str, int]:
+        scores = {
+            agent.__class__.__name__: self.nonspy_scoring[self.game_state]
+            for agent in self.players
+        }
+        scores[self.players[self.spy].__class__.__name__] = self.spy_scoring[
+            self.game_state
+        ]
         return scores
 
     def pregenerate_audio(self):
