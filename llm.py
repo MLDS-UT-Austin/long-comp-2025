@@ -1,33 +1,32 @@
 import os
-from abc import ABC, abstractmethod
 
 import numpy as np
 import tiktoken
 from dotenv import load_dotenv
+from transformers import LlamaTokenizer
 
 # Please set your OpenAI API key in the .env file: "API_KEY=your-api-key"
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 
-class LLM(ABC):
-    def __init__(self, model_name: str = "gpt-4"):
-        self.encoder = tiktoken.encoding_for_model(model_name)
+class LlamaLLM:
+    def __init__(self, model_name: str = "meta-llama/Llama-8"):
+        self.model_name = model_name
+        self.tokenizer = LlamaTokenizer.from_pretrained(model_name)
+
+    async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
+        raise NotImplementedError()  # TODO
+
+    async def get_embeddings(self, input: str) -> np.ndarray:
+        raise NotImplementedError()  # TODO
 
     def count_tokens(self, input: str) -> int:
-        tokens = self.encoder.encode(input)
+        tokens = self.tokenizer.tokenize(input)
         return len(tokens)
 
-    @abstractmethod
-    async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
-        pass
 
-    @abstractmethod
-    async def get_embeddings(self, input: str) -> np.ndarray:
-        pass
-
-
-class DummyLLM(LLM):
+class DummyLLM(LlamaLLM):
     """A dummy LLM for testing"""
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
@@ -35,8 +34,9 @@ class DummyLLM(LLM):
 
     async def get_embeddings(self, input: str) -> np.ndarray:
         return np.zeros(512)
-    
-class CopyCatLLM(LLM):
+
+
+class CopyCatLLM(LlamaLLM):
     """A LLM for estimating token usage"""
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
@@ -46,23 +46,10 @@ class CopyCatLLM(LLM):
         return np.zeros(512)
 
 
-class OpenAILLM(LLM):
-    """Global LLM instance for all games/players to share"""
-
-    def __init__(self, model_name: str = "gpt4o-mini"):
-        super().__init__(model_name)
-
-    async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
-        raise NotImplementedError()  # TODO
-
-    async def get_embeddings(self, input: str) -> np.ndarray:
-        raise NotImplementedError()  # TODO
-
-
-class LLMTokenCounterWrapper(LLM):
+class TokenCounterWrapper(LlamaLLM):
     """A wrapper around an LLM that keeps track of the number of tokens used per round"""
 
-    def __init__(self, llm: LLM, token_limit: int = 4096):
+    def __init__(self, llm: LlamaLLM, token_limit: int = 4096):
         """_summary_
 
         Args:
@@ -95,13 +82,16 @@ class LLMTokenCounterWrapper(LLM):
 
         return await self.llm.get_embeddings(input)
 
+    def count_tokens(self, input: str) -> int:
+        return self.llm.count_tokens(input)
 
-class LLMProxy(LLM):
+
+class LLMProxy:
     """The wrapper that agents will use to interact with the LLM"""
 
-    def __init__(self, llm: LLMTokenCounterWrapper | None = None):
+    def __init__(self, llm: TokenCounterWrapper | None = None):
         if llm is None:
-            llm = LLMTokenCounterWrapper(DummyLLM())
+            llm = TokenCounterWrapper(DummyLLM())
         self.__llm = llm
 
     async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
@@ -109,6 +99,9 @@ class LLMProxy(LLM):
 
     async def get_embeddings(self, input: str) -> np.ndarray:
         return await self.__llm.get_embeddings(input)
+
+    def count_tokens(self, input: str) -> int:
+        return self.__llm.count_tokens(input)
 
     def get_remaining_tokens(self):
         return self.__llm.remaining_tokens
