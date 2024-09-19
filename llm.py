@@ -35,6 +35,15 @@ class DummyLLM(LLM):
 
     async def get_embeddings(self, input: str) -> np.ndarray:
         return np.zeros(512)
+    
+class CopyCatLLM(LLM):
+    """A LLM for estimating token usage"""
+
+    async def prompt(self, input: str, max_output_tokens: int | None = None) -> str:
+        return input
+
+    async def get_embeddings(self, input: str) -> np.ndarray:
+        return np.zeros(512)
 
 
 class OpenAILLM(LLM):
