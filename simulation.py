@@ -87,9 +87,14 @@ class Simulation:
 
         return df
 
-    def visualize_scores(self, duration: int = 10, fps: int = 30):
+    def get_animation(
+        self, duration: int = 10, fps: int = 30
+    ) -> animation.FuncAnimation:
         df = self.get_scores()
-        df = df.cumsum(axis=0)
+
+        for col in df.columns:
+            df[col] = df[col].expanding().mean() * df.index
+            df[col] = df[col].fillna(0)
 
         plt.rcParams["toolbar"] = "None"
 
@@ -122,6 +127,11 @@ class Simulation:
             interval=1000 / fps,
             repeat=False,
         )
+
+        return ani
+
+    def visualize_scores(self, duration: int = 10, fps: int = 30):
+        ani = self.get_animation(duration, fps)
 
         plt.show()
 
