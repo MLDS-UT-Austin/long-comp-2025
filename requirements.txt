@@ -1,7 +1,7 @@
 tqdm
 python-dotenv
 numpy
-tiktoken
+together
 transformers
 pygame
 sentencepiece
