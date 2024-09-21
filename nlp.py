@@ -1,6 +1,7 @@
 import asyncio
 import math
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from enum import Enum
 
 import numpy as np
@@ -205,24 +206,14 @@ class DummyEmbedding(Embedding):
         return np.zeros(768)
 
 
+@dataclass
 class NLP:
     """Used for the single, main NLP instance in the runtime"""
 
-    def __init__(
-        self,
-        llm_tokenizer: LLMTokenizer | None = None,
-        llm: LLM | None = None,
-        embedding_tokenizer: EmbeddingTokenizer | None = None,
-        embedding: Embedding | None = None,
-    ):
-        self.llm_tokenizer = (
-            llm_tokenizer if llm_tokenizer is not None else LlamaTokenizer()
-        )
-        self.llm = llm if llm is not None else DummyLLM()
-        self.embedding_tokenizer = (
-            embedding_tokenizer if embedding_tokenizer is not None else BERTTokenizer()
-        )
-        self.embedding = embedding if embedding is not None else DummyEmbedding()
+    llm_tokenizer: LLMTokenizer = field(default_factory=LlamaTokenizer)
+    llm: LLM = field(default_factory=DummyLLM)
+    embedding_tokenizer: EmbeddingTokenizer = field(default_factory=BERTTokenizer)
+    embedding: Embedding = field(default_factory=DummyEmbedding)
 
     async def prompt_llm(
         self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
@@ -239,16 +230,14 @@ class NLP:
         return self.embedding_tokenizer.count_tokens(text)
 
 
+@dataclass
 class TokenCounterWrapper:
     """Used for NLP instances that need to keep track of token usage"""
 
-    def __init__(
-        self,
-        nlp: NLP | None = None,
-        token_limit: int = 4096,  # FIXME
-    ):
-        self.nlp = nlp if nlp is not None else NLP()
-        self.token_limit = token_limit
+    nlp: NLP = field(default_factory=NLP)
+    token_limit: int = 4096
+
+    def __post_init__(self):
         self.reset_token_counter()
 
     def reset_token_counter(self):
