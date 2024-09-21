@@ -8,7 +8,7 @@ from tqdm import tqdm  # type: ignore
 
 from agent import Agent
 from data import *
-from llm import *
+from nlp import *
 from util import *
 
 
@@ -27,7 +27,7 @@ class Game:
     questioner: int
     player_classes: list[type[Agent]]
     players: list[Agent]
-    player_llms: list[TokenCounterWrapper]
+    player_nlps: list[TokenCounterWrapper]
     game_state: GameState
     tqdm_bar: tqdm | None = None
     n_players: int
@@ -52,7 +52,7 @@ class Game:
     def __init__(
         self,
         player_classes: list[type[Agent]],
-        llm: LLM,
+        nlp: NLP,
         n_rounds: int = 20,
     ):
         self.player_classes = player_classes
@@ -63,17 +63,17 @@ class Game:
         self.spy = random.randint(0, n_players - 1)
         self.questioner = random.randint(0, n_players - 1)
         self.players = []
-        self.player_llms = []
+        self.player_nlps = []
         self.game_state = GameState.RUNNING
 
         for i, player_class in enumerate(player_classes):
-            player_llm = TokenCounterWrapper(llm)
+            player_nlp = TokenCounterWrapper(nlp)
             given_location = self.location if i != self.spy else None
             player_instance = player_class(
-                given_location, n_players, n_rounds, llm=LLMProxy(player_llm)
+                given_location, n_players, n_rounds, nlp=NLPProxy(player_nlp)
             )
             self.players.append(player_instance)
-            self.player_llms.append(player_llm)
+            self.player_nlps.append(player_nlp)
 
         self.povs = [list(range(1, n_players)) for _ in range(n_players)]
         for i, pov in enumerate(self.povs):
@@ -138,8 +138,8 @@ class Round:
 
     async def play(self):
         game = self.game
-        for llm in game.player_llms:
-            llm.reset_token_counter()
+        for nlp in game.player_nlps:
+            nlp.reset_token_counter()
         questioner = self.questioner = game.questioner
 
         # TODO: should we increase the token count for the questioner and answerer?

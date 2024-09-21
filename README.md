@@ -59,6 +59,6 @@ To get your API key, click the link above to create an account. A pop-up will ap
 Next, create a file named `.env` in the root directory with the following text:
 
 ``` text
-API_KEY = <your_api_key>
+TOGETHER_API_KEY = <your_together_api_key>
 ```
 

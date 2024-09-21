@@ -1,6 +1,7 @@
 from agent import Agent, register_agent
 from data import Location
-from llm import LLMProxy
+from nlp import NLPProxy
+
 
 @register_agent
 class TeamNameHere(Agent):
@@ -9,7 +10,7 @@ class TeamNameHere(Agent):
         location: Location | None,
         n_players: int,
         n_rounds: int,
-        llm: LLMProxy,
+        llm: NLPProxy,
     ) -> None:
         self.location = location
         self.n_players = n_players

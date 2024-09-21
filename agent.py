@@ -1,9 +1,9 @@
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Callable, final
+from typing import final
 
 from data import Location
-from llm import DummyLLM, LLMProxy, TokenCounterWrapper
+from nlp import NLPProxy
 
 AGENT_REGISTRY = {}
 
@@ -27,13 +27,13 @@ class Agent(ABC):
         location: Location | None,
         n_players: int,
         n_rounds: int,
-        llm: LLMProxy,
+        nlp: NLPProxy,
     ) -> None:
         """Args:
         location (Location | None): the enum location for the game or None if the agent is the spy
         n_players (int): number of players including yourself
         n_rounds (int): total number rounds. Each round includes a question, answer, and a vote.
-        llm (LLMProxy): allows you to prompt the llm and get embeddings. You are given # TODO tokens per round.
+        nlp (NLPProxy): allows you to prompt the llm and get embeddings. You are given # TODO tokens per round.
             If you exceed the token limit, get_prompt will return an empty string and get_embeddings will return a 0 array.
         """
         pass
@@ -110,7 +110,7 @@ class Agent(ABC):
     @final
     def validate(cls) -> None:
         """Quick check for return types and edge cases"""
-        agent = cls(Location.AIRPLANE, 5, 5, LLMProxy())
+        agent = cls(Location.AIRPLANE, 5, 5, NLPProxy())
         answerer, question = asyncio.run(agent.ask_question())
         answer0 = asyncio.run(agent.answer_question("question here"))
         answer1 = asyncio.run(agent.answer_question(""))
@@ -139,12 +139,12 @@ class ExampleAgent(Agent):
         location: Location | None,
         n_players: int,
         n_rounds: int,
-        llm: LLMProxy,
+        nlp: NLPProxy,
     ) -> None:
         self.location = location
         self.n_players = n_players
         self.n_rounds = n_rounds
-        self.llm = llm
+        self.nlp = nlp
 
     async def ask_question(self) -> tuple[int, str]:
         return 1, "question"

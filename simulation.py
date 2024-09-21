@@ -13,13 +13,13 @@ import pandas as pd  # type: ignore
 
 from agent import *
 from game import *
-from llm import *
+from nlp import *
 from util import *
 
 
 @dataclass
 class Simulation:
-    llm: LLM
+    nlp: NLP
     submission_paths: str = "agents/**/submission.py"
     gave_save_dir: str = "games/simulation0"
     n_games: int = 100
@@ -46,7 +46,7 @@ class Simulation:
         tqdm_bar = tqdm(
             total=self.n_games * self.n_rounds, desc="Rounds", colour="green"
         )
-        games = [Game(agents, self.llm, self.n_rounds) for agents in player_classes]
+        games = [Game(agents, self.nlp, self.n_rounds) for agents in player_classes]
         for game in games:
             game.tqdm_bar = tqdm_bar
 
@@ -56,7 +56,10 @@ class Simulation:
             game.tqdm_bar = None
         tqdm_bar.close()
 
-        self.games = games
+        if hasattr(self, "games"):
+            self.games.extend(games)
+        else:
+            self.games = games
 
     def pickle_games(self):
         self.games, "must call run() first"
@@ -146,16 +149,23 @@ class Simulation:
 
 
 if __name__ == "__main__":
+    # # Use Together.ai for Llama and BERT
+    # nlp = NLP(nlp = Llama(), embedding=BERTTogether())
+    # # Use Together.ai for Llama but run BERT locally
+    # nlp = NLP(nlp = Llama(), embedding=BERTLocal(batch_size=8))
+    # Output the same string for every question and return a 0 array for every embedding
+    nlp = NLP(nlp=DummyLLM(), embedding=DummyEmbedding())
+
     # Demo at Long Comp Intro Day
     import_agent_from_file("agents/submission.py")
-    game = Game(list(AGENT_REGISTRY.values()), DummyLLM(), 20)
+    game = Game(list(AGENT_REGISTRY.values()), nlp, 20)
     asyncio.run(game.play())
     game.get_scores()
     game.render()
 
     # Long Comp Day
     # Show teams over time
-    sim = Simulation(DummyLLM())
+    sim = Simulation(nlp)
     asyncio.run(sim.run())
     sim.pickle_games()
     sim.load_games()
@@ -166,5 +176,4 @@ if __name__ == "__main__":
     # Show final teams
     team_names = ["ExampleAgent", "TeamNameHere"]
     player_classes = [AGENT_REGISTRY[name] for name in team_names]
-    game = Game(player_classes, DummyLLM(), 20)
-
+    game = Game(player_classes, nlp, 20)
