@@ -150,11 +150,11 @@ class Simulation:
 
 if __name__ == "__main__":
     # # Use Together.ai for Llama and BERT
-    # nlp = NLP(nlp = Llama(), embedding=BERTTogether())
+    # nlp = NLP(llm = Llama(), embedding=BERTTogether())
     # # Use Together.ai for Llama but run BERT locally
-    # nlp = NLP(nlp = Llama(), embedding=BERTLocal(batch_size=8))
+    # nlp = NLP(llm = Llama(), embedding=BERTLocal(batch_size=8))
     # Output the same string for every question and return a 0 array for every embedding
-    nlp = NLP(nlp=DummyLLM(), embedding=DummyEmbedding())
+    nlp = NLP(llm=DummyLLM(), embedding=DummyEmbedding())
 
     # Demo at Long Comp Intro Day
     import_agent_from_file("agents/submission.py")

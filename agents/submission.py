@@ -1,3 +1,5 @@
+from mydata import *
+
 from agent import Agent, register_agent
 from data import Location
 from nlp import NLPProxy
