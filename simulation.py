@@ -37,18 +37,19 @@ class Simulation:
                 print(f"Agent {name} failed validation: {e}")
                 raise e
 
+        self.games = []
+
     async def run(self, n_games: int = 1, agent_names: list[str] | None = None):
         if agent_names is None:
             agent_classes = list(self.agent_registry.values())
         else:
-            agent_classes = [self.agent_registry[agent_name] for agent_name in agent_names]
+            agent_classes = [
+                self.agent_registry[agent_name] for agent_name in agent_names
+            ]
         player_classes = [
-            random.sample(agent_classes, self.team_size)
-            for _ in range(n_games)
+            random.sample(agent_classes, self.team_size) for _ in range(n_games)
         ]
-        tqdm_bar = tqdm(
-            total=n_games * self.n_rounds, desc="Rounds", colour="green"
-        )
+        tqdm_bar = tqdm(total=n_games * self.n_rounds, desc="Rounds", colour="green")
         games = [Game(agents, self.nlp, self.n_rounds) for agents in player_classes]
         for game in games:
             game.tqdm_bar = tqdm_bar
@@ -59,13 +60,10 @@ class Simulation:
             game.tqdm_bar = None
         tqdm_bar.close()
 
-        if hasattr(self, "games"):
-            self.games.extend(games)
-        else:
-            self.games = games
+        self.games.extend(games)
 
     def pickle_games(self):
-        self.games, "must call run() first"
+        assert len(self.games) > 0, "must call run() or load_games() first"
 
         for i, game in enumerate(
             tqdm(self.games, desc="Pickling games", colour="green")
@@ -82,11 +80,13 @@ class Simulation:
             with open(path, "rb") as f:
                 games.append(pickle.load(f))
 
-        self.games = games
+        self.games.extend(games)
 
     def get_scores(self) -> pd.DataFrame:
-        self.games, "must call run() first"
-        df = pd.DataFrame(index=range(len(self.games)), columns=self.agent_registry.keys())
+        assert len(self.games) > 0, "must call run() or load_games() first"
+        df = pd.DataFrame(
+            index=range(len(self.games)), columns=self.agent_registry.keys()
+        )
 
         for i, game in enumerate(self.games):
             scores = game.get_scores()
@@ -159,7 +159,6 @@ if __name__ == "__main__":
     # nlp = NLP(llm = Llama(), embedding=BERTLocal(batch_size=8))
     # Output the same string for every question and return a 0 array for every embedding
     nlp = NLP(llm=DummyLLM(), embedding=DummyEmbedding())
-
 
     # Test your agent
     sim = Simulation(nlp)

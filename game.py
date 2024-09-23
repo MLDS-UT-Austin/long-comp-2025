@@ -12,6 +12,7 @@ from nlp import *
 from util import *
 
 
+# Used to describe how the game ended or if it is ongoing
 class GameState(Enum):
     RUNNING = "ongoing"
     SPY_GUESSED_RIGHT = "spy guessed right"
@@ -22,15 +23,24 @@ class GameState(Enum):
 
 
 class Game:
+    """Used to run a game of Spyfall
+    Consists of multiple rounds
+    """
+
+    n_players: int
+    player_classes: list[type[Agent]]
+    n_rounds: int
+
     location: Location
     spy: int
-    questioner: int
-    player_classes: list[type[Agent]]
+    questioner: int  # current questioner
     players: list[Agent]
-    player_nlps: list[TokenCounterWrapper]
+    player_nlps: list[TokenCounterWrapper]  # each keeps track of tokens per round
+    rounds: list["Round"]
     game_state: GameState
+
+    # can be optionally set to visualize how many rounds have been played
     tqdm_bar: tqdm | None = None
-    n_players: int
 
     spy_scoring = {
         GameState.RUNNING: 0,
@@ -55,15 +65,18 @@ class Game:
         nlp: NLP,
         n_rounds: int = 20,
     ):
-        self.player_classes = player_classes
+        # init game
         n_players = self.n_players = len(player_classes)
         assert n_players >= 2
+        self.player_classes = player_classes
         self.n_rounds = n_rounds
+
         self.location = random.choice(list(Location))
         self.spy = random.randint(0, n_players - 1)
         self.questioner = random.randint(0, n_players - 1)
         self.players = []
         self.player_nlps = []
+        self.rounds: list[Round] = []
         self.game_state = GameState.RUNNING
 
         for i, player_class in enumerate(player_classes):
@@ -75,28 +88,34 @@ class Game:
             self.players.append(player_instance)
             self.player_nlps.append(player_nlp)
 
-        self.povs = [list(range(1, n_players)) for _ in range(n_players)]
-        for i, pov in enumerate(self.povs):
+        # povs maps global player index to local player index
+        self._povs = [list(range(1, n_players)) for _ in range(n_players)]
+        for i, pov in enumerate(self._povs):
             random.shuffle(pov)
-            pov.insert(i, 0)
-        self.r_povs = [[0] * (n_players) for _ in range(n_players)]
-        for i in range(n_players):
-            for player, player_w_pov in enumerate(self.povs[i]):
-                self.r_povs[i][player_w_pov] = player
+            pov.insert(i, 0)  # global index i always maps to local index 0
 
-        self.rounds: list[Round] = []
+        # r_povs maps local player index to global player index
+        self._r_povs = [[0] * (n_players) for _ in range(n_players)]
+        for i in range(n_players):
+            for player, player_w_pov in enumerate(self._povs[i]):
+                self._r_povs[i][player_w_pov] = player
+
         for i in range(n_players):  # TODO move to test cases
             for j in range(n_players):
                 assert self.add_pov(self.reverse_pov(j, pov=i), pov=i) == j
                 assert self.reverse_pov(self.add_pov(j, pov=i), pov=i) == j
 
     def add_pov(self, player: int, pov: int):
-        return self.povs[pov][player]
+        """adds a point of view to a player index"""
+        return self._povs[pov][player]
 
     def reverse_pov(self, player: int, pov: int):
-        return self.r_povs[pov][player]
+        """Remove a point of view from a player index"""
+        return self._r_povs[pov][player]
 
     async def play(self):
+        """runs the game
+        call using asyncio.run(game.play())"""
         for _ in range(self.n_rounds):
             round = Round(self)
             await round.play()
@@ -110,11 +129,13 @@ class Game:
         self.game_state = GameState.NO_ONE_INDICTED
 
     def get_scores(self) -> list[int]:
+        """gets the scores of each player in the same order as the player classes"""
         scores = [self.nonspy_scoring[self.game_state]] * self.n_players
         scores[self.spy] = self.spy_scoring[self.game_state]
         return scores
 
     def render(self):
+        """Visualizes the game and plays the audio"""
         # init pygame
         self.window = None
         for round in self.rounds:
@@ -123,6 +144,10 @@ class Game:
 
 
 class Round:
+    """Used to run a round of Spyfall
+    Uses a game object to track the current state
+    Uses instance variables to log the round's events"""
+
     questioner: int
     question: str
     answerer: int
@@ -138,16 +163,23 @@ class Round:
 
     async def play(self):
         game = self.game
-        for nlp in game.player_nlps:
-            nlp.reset_token_counter()
         questioner = self.questioner = game.questioner
 
+        # reset token counter for each player
+        for nlp in game.player_nlps:
+            nlp.reset_token_counter()
+
         # TODO: should we increase the token count for the questioner and answerer?
+        # ask question
         answerer, question = await game.players[questioner].ask_question()
         assert 1 <= answerer < game.n_players and isinstance(question, str)
         answerer = game.reverse_pov(answerer, pov=questioner)
+
+        # answer question
         answer = await game.players[answerer].answer_question(question)
         assert isinstance(answer, str)
+
+        # send question and answer to all players
         futures = []
         for player in range(game.n_players):
             q = game.add_pov(questioner, pov=player)
@@ -171,21 +203,25 @@ class Round:
             game.game_state = GameState.SPY_GUESSED_WRONG
             return
 
-        # player voting
+        # collect votes
         votes = self.player_votes = await asyncio.gather(
             *[player.accuse_player() for player in game.players]
         )
         assert all(1 <= vote < game.n_players for vote in votes if vote is not None)
-
         for i, vote in enumerate(votes):
             if vote is not None:
                 votes[i] = game.reverse_pov(vote, pov=i)
 
+        # count votes
         indicted = self.indicted = count_votes(votes, game.n_players)
         if indicted == game.spy:
             game.game_state = GameState.SPY_INDICTED
+            return
         elif indicted is not None:
             game.game_state = GameState.NON_SPY_INDICTED
+            return
+
+        # send votes to players
         futures = []
         for i in range(game.n_players):
             votes_pov = [] * game.n_players
@@ -199,10 +235,13 @@ class Round:
     def get_conversation(self) -> list[tuple[int, str]]:
         """returns the conversation as a list of tuples of player index and their message"""
         game = self.game
-
         output = []
+
+        # question and answer
         output.append((self.questioner, f"Player {self.answerer + 1}, {self.question}"))
         output.append((self.answerer, self.answer))
+
+        # spy guess
         if self.spy_guess is not None:
             # spy: I am the spy. Was it the {location}?
             msg = random.choice(SPY_REVEAL_AND_GUESS).format(
@@ -214,13 +253,13 @@ class Round:
                 # random nonspy: yes that is right
                 msg = random.choice(SPY_GUESS_RIGHT_RESPONSE)
             else:
+                # random nonspy: no, it was the {location}
                 msg = random.choice(SPY_GUESS_WRONG_RESPONSE).format(
                     location=game.location.value
                 )
-
             output.append((responder, msg))
 
-        # write logic for indictions here if there is a majority
+        # indictment
         if self.indicted is not None:
             # one of the accusers: "I think it's player {spy} are you the spy?"
             accuser = random.choice(
