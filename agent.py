@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import final
 
 from data import Location, redaction_dict
-from nlp import NLPProxy
+from nlp import LLMRole, NLPProxy
 from util import redact
 
 AGENT_REGISTRY = {}
@@ -148,7 +148,19 @@ class ExampleAgent(Agent):
         self.nlp = nlp
 
     async def ask_question(self) -> tuple[int, str]:
-        return 1, "question"
+        if self.location is None:
+            return 1, "question"
+        # fmt: off
+        prompt = [
+            (LLMRole.SYSTEM, f"You playing a game of spyfall. The location is the {self.location}. You MUST NOT reveal the location in your question/answers"),
+            (LLMRole.USER, "Ask a question"),
+            (LLMRole.ASSISTANT, "Have you been to this location before?"),
+            (LLMRole.USER, "Ask another question"),
+        ]
+        # fmt: on
+        question = await self.nlp.prompt_llm(prompt, max_output_tokens=50)
+        question = redact(question, self.location)
+        return 1, question
 
     async def answer_question(self, question: str) -> str:
         return "answer"
