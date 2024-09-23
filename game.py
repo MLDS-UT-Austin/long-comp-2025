@@ -4,9 +4,10 @@ from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
+import pandas as pd
 from tqdm import tqdm  # type: ignore
 
-from agent import Agent
+from agent import AGENT_REGISTRY, Agent
 from data import *
 from nlp import *
 from util import *
@@ -28,7 +29,7 @@ class Game:
     """
 
     n_players: int
-    player_classes: list[type[Agent]]
+    player_names: list[str]
     n_rounds: int
 
     location: Location
@@ -61,14 +62,14 @@ class Game:
 
     def __init__(
         self,
-        player_classes: list[type[Agent]],
+        player_names: list[str],
         nlp: NLP,
         n_rounds: int = 20,
     ):
         # init game
-        n_players = self.n_players = len(player_classes)
+        n_players = self.n_players = len(player_names)
         assert n_players >= 2
-        self.player_classes = player_classes
+        self.player_names = player_names
         self.n_rounds = n_rounds
 
         self.location = random.choice(list(Location))
@@ -79,7 +80,8 @@ class Game:
         self.rounds: list[Round] = []
         self.game_state = GameState.RUNNING
 
-        for i, player_class in enumerate(player_classes):
+        for i, player_class_name in enumerate(player_names):
+            player_class = AGENT_REGISTRY[player_class_name]
             player_nlp = TokenCounterWrapper(nlp)
             given_location = self.location if i != self.spy else None
             player_instance = player_class(
@@ -128,10 +130,18 @@ class Game:
             self.tqdm_bar.update(self.n_rounds - len(self.rounds))
         self.game_state = GameState.NO_ONE_INDICTED
 
-    def get_scores(self) -> list[int]:
-        """gets the scores of each player in the same order as the player classes"""
-        scores = [self.nonspy_scoring[self.game_state]] * self.n_players
-        scores[self.spy] = self.spy_scoring[self.game_state]
+    def get_scores(self) -> pd.Series:
+        """Gets the scores of all players as a pandas series
+
+        Returns:
+            pd.Series: Pandas Series with the scores
+                index: player names
+                values: score
+        """
+        scores_list = [self.nonspy_scoring[self.game_state]] * self.n_players
+        scores_list[self.spy] = self.spy_scoring[self.game_state]
+
+        scores = pd.Series(data=scores_list, index=self.player_names)
         return scores
 
     def render(self):

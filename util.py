@@ -4,6 +4,7 @@ import re
 import string
 import sys
 from collections import Counter
+from glob import glob
 from os.path import dirname
 
 from data import *
@@ -41,18 +42,19 @@ def count_votes(votes: list[int | None], n_players: int):
             majority = None  # tie
 
 
-def import_agent_from_file(file_path: str) -> None:
+def import_agents_from_files(glob_pattern: str) -> None:
     """loads an agent from a file and adds it to the agent registry
     Correctly handles imports, prioritizing the working directory over the submission directory
     Args:
         file_path (str): the path to the agent's submission file
     """
-    # submitted agents will prioritize files in the working directory, then the submission directory
-    name = "".join(random.choice(string.ascii_letters) for _ in range(20))
-    spec = importlib.util.spec_from_file_location(name, file_path)  # type: ignore
-    module = importlib.util.module_from_spec(spec)  # type: ignore
-    orig_path = sys.path
-    sys.modules[name] = module
-    sys.path.insert(1, dirname(file_path))
-    spec.loader.exec_module(module)
-    sys.path = orig_path
+    for file in glob(glob_pattern, recursive=True):
+        # submitted agents will prioritize files in the working directory, then the submission directory
+        name = "".join(random.choice(string.ascii_letters) for _ in range(20))
+        spec = importlib.util.spec_from_file_location(name, file)  # type: ignore
+        module = importlib.util.module_from_spec(spec)  # type: ignore
+        orig_path = sys.path
+        sys.modules[name] = module
+        sys.path.insert(1, dirname(file))
+        spec.loader.exec_module(module)
+        sys.path = orig_path
