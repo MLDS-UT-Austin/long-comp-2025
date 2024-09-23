@@ -263,7 +263,7 @@ class TokenCounterWrapper:
     async def get_embeddings(self, text: str) -> np.ndarray:
         self.remaining_tokens -= math.ceil(self.nlp.count_embedding_tokens(text) / 10)
         if self.remaining_tokens < 0:
-            return np.zeros(0)
+            return np.zeros(768)
 
         return await self.nlp.get_embeddings(text)
 
@@ -277,28 +277,28 @@ class TokenCounterWrapper:
 class NLPProxy:
     """The wrapper that agents will use to interact with the LLM"""
 
-    def __init__(self, llm: TokenCounterWrapper | None = None):
-        if llm is None:
-            llm = TokenCounterWrapper()
-        self.__llm = llm
+    def __init__(self, token_counter: TokenCounterWrapper | None = None):
+        if token_counter is None:
+            token_counter = TokenCounterWrapper()
+        self.__token_counter = token_counter
 
     async def prompt_llm(
         self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
     ) -> str:
-        return await self.__llm.prompt_llm(prompt, max_output_tokens)
+        return await self.__token_counter.prompt_llm(prompt, max_output_tokens)
 
     async def get_embeddings(self, text: str) -> np.ndarray:
         # TODO docs, also explain variable costs
-        return await self.__llm.get_embeddings(text)
+        return await self.__token_counter.get_embeddings(text)
 
     def count_llm_tokens(self, text_or_prompt: str | list[tuple[LLMRole, str]]) -> int:
-        return self.__llm.count_llm_tokens(text_or_prompt)
+        return self.__token_counter.count_llm_tokens(text_or_prompt)
 
     def count_embedding_tokens(self, text: str) -> int:
-        return self.__llm.count_embedding_tokens(text)
+        return self.__token_counter.count_embedding_tokens(text)
 
     def get_remaining_tokens(self):
-        return self.__llm.remaining_tokens
+        return self.__token_counter.remaining_tokens
 
 
 async def main():

@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
-import pandas as pd
+import pandas as pd  # type: ignore
 from tqdm import tqdm  # type: ignore
 
 from agent import AGENT_REGISTRY, Agent
@@ -15,7 +15,7 @@ from util import *
 
 # Used to describe how the game ended or if it is ongoing
 class GameState(Enum):
-    RUNNING = "ongoing"
+    RUNNING = "running"
     SPY_GUESSED_RIGHT = "spy guessed right"
     SPY_GUESSED_WRONG = "spy guessed wrong"
     SPY_INDICTED = "spy indicted"
@@ -101,11 +101,6 @@ class Game:
         for i in range(n_players):
             for player, player_w_pov in enumerate(self._povs[i]):
                 self._r_povs[i][player_w_pov] = player
-
-        for i in range(n_players):  # TODO move to test cases
-            for j in range(n_players):
-                assert self.add_pov(self.reverse_pov(j, pov=i), pov=i) == j
-                assert self.reverse_pov(self.add_pov(j, pov=i), pov=i) == j
 
     def add_pov(self, player: int, pov: int):
         """adds a point of view to a player index"""
@@ -234,8 +229,10 @@ class Round:
         # send votes to players
         futures = []
         for i in range(game.n_players):
-            votes_pov = [] * game.n_players
-            for voter, votee in enumerate(votes_pov):
+            votes_pov = [None] * game.n_players
+            for voter, votee in enumerate(votes):
+                if votee is None:
+                    continue
                 voter = game.add_pov(voter, pov=i)
                 votee = game.add_pov(votee, pov=i)
                 votes_pov[voter] = votee

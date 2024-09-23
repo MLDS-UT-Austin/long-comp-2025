@@ -2,7 +2,7 @@
 
 # Long Competition 2025: Spyfall
 
-This is the repository for the 2025 MLDS Long Competition where teams will be competing in a game of Spyfall. Teams will submit agents that can use LLMs and other NLP techniques to ask/answer questions and determine the spy/location. The goal of this Long Competition is to show your LLM prompting skills.
+This is the repository for the 2025 UT Austin MLDS Long Competition where teams will be competing in a game of Spyfall. Teams will submit agents that can use LLMs and embedding models to ask/answer questions and determine the spy/location. The goal of this Long Competition is to show your LLM prompting/natural language processing skills.
 
 ## Game Rules
 
@@ -48,7 +48,9 @@ conda activate long_comp
 pip install -r requirements.txt
 ```
 
-If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager`, which should prompt you to install conda.
+If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager` by Don Jayamanne, which should prompt you to install conda.
+
+*Note: this repository is thoroughly type-annotated. To catch type errors, you can install the VSCode Extension `Mypy Type Checker` by Microsoft.*
 
 **<u>Setting up Your LLM API Key</u>**:
 
@@ -62,3 +64,6 @@ Next, create a file named `.env` in the root directory with the following text:
 TOGETHER_API_KEY = <your_together_api_key>
 ```
 
+**<u>Running Games/Simulations</u>**:
+
+See the bottom of `simulation.py` for an example of how to run games and simulations.

@@ -24,7 +24,7 @@ def redact(text: str, location: Location, redacted_text: str = "<REDACTED>") -> 
     return text
 
 
-def count_votes(votes: list[int | None], n_players: int):
+def count_votes(votes: list[int | None], n_players: int) -> int | None:
     """Used in game.py to count votes and determine the majority
     Args:
         votes (list[int  |  None]): the player that each player voted for, or None if they abstained
@@ -32,14 +32,14 @@ def count_votes(votes: list[int | None], n_players: int):
     """
     counter = Counter(votes)
     if counter[None] >= n_players / 2:
-        majority = None  # half or more abstained
+        return None  # half or more abstained
     else:
         del counter[None]
         top2 = counter.most_common(2)  # ((player, count), (player, count))
         if len(top2) == 1 or top2[0][1] > top2[1][1]:
-            majority = top2[0][0]
+            return top2[0][0]
         else:
-            majority = None  # tie
+            return None  # tie
 
 
 def import_agents_from_files(glob_pattern: str) -> None:

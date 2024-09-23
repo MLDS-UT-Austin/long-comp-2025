@@ -36,7 +36,7 @@ class Simulation:
                 print(f"Agent {name} failed validation: {e}")
                 raise e
 
-        self.games = []
+        self.games: list[Game] = []
 
     async def run(self, n_games: int = 1, agent_names: list[str] | None = None):
         """Run multiple games in parallel and adds the results to self.games
@@ -55,7 +55,9 @@ class Simulation:
         tqdm_bar = tqdm(total=n_games * self.n_rounds, desc="Rounds", colour="green")
 
         # Run games concurrently
-        games = [Game(agents, self.nlp, self.n_rounds) for agents in sampled_agent_names]
+        games = [
+            Game(agents, self.nlp, self.n_rounds) for agents in sampled_agent_names
+        ]
         for game in games:
             game.tqdm_bar = tqdm_bar
 
@@ -104,11 +106,9 @@ class Simulation:
         )
 
         for i, game in enumerate(self.games):
-            scores = game.get_scores()
-            agent_names = [
-                player_class.__name__ for player_class in game.player_classes
-            ]
-            df.loc[i] = scores
+            game_scores = game.get_scores()
+            assert game_scores.index.isin(df.columns).all()
+            df.loc[i] = game_scores
 
         return df
 
@@ -119,7 +119,7 @@ class Simulation:
 
         for col in df.columns:
             # Use expanding mean times index instead of cumsum to correctly handle NaNs
-            df[col] = df[col].expanding().mean() * df.index
+            df[col] = df[col].expanding().mean() * (df.index + 1)
             df[col] = df[col].fillna(0)
 
         plt.rcParams["toolbar"] = "None"
@@ -194,10 +194,12 @@ if __name__ == "__main__":
     print("Scores:", game.get_scores())
     game.render()
 
-    # Run multiple games ####################################################
+    # Run multiple games with randomly sampled players ####################################################
     sim = Simulation(nlp)
     asyncio.run(sim.run(n_games=10, agent_names=["ExampleAgent", "TeamNameHere"]))
-    print("Average Scores:", sim.get_scores().mean(axis=0)) # average scores of all agents
+    print(
+        "Average Scores:", sim.get_scores().mean(axis=0)
+    )  # average scores of all agents
     sim.visualize_scores()
     # sim.save_visualization("simulation.mp4")
     # sim.pickle_games()
