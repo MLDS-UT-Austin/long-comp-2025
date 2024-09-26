@@ -11,6 +11,8 @@ AGENT_REGISTRY = {}
 
 def register_agent(cls):
     """Type @register_agent on top of the class definition to register the agent"""
+    assert issubclass(cls, Agent)
+    assert cls.__name__ not in AGENT_REGISTRY
     AGENT_REGISTRY[cls.__name__] = cls
     return cls
 
