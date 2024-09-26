@@ -67,3 +67,9 @@ TOGETHER_API_KEY = <your_together_api_key>
 **<u>Running Games/Simulations</u>**:
 
 See the bottom of `simulation.py` for an example of how to run games and simulations.
+
+**<u>Submitting Your Agent</u>**:
+
+Put your agent in `submission.py` with `@register_agent` above the class definition. Your agent should be named with you team name. Commit and push `submission.py` and any other files you added to the GitHub classroom repository.
+
+Besides `submission.py` and added files, do not modify any other files in the repository. For instance, do not add data to `data.py`. If you need to store data, use a separate file.
