@@ -13,7 +13,6 @@ from transformers import (  # type: ignore
     AutoTokenizer,
 )
 
-# TODO: get rid of "llm" in other files
 # Please set your API key in the .env file: "TOGETHER_API_KEY=<your-api-key>"
 load_dotenv()
 
@@ -163,6 +162,7 @@ class BERTLocal(Embedding):
     async def model_loop(self):
         """Use a loop to optimize with batching"""
         while True:
+            # Once an item is added to the queue, build as large of a batch as possible (up to batch_size) and process it
             dequeued = [await self.queue.get()]
             for _ in range(self.batch_size - 1):
                 try:
@@ -173,7 +173,7 @@ class BERTLocal(Embedding):
             # print("batch size", len(dequeued))
             inputs, futures = zip(*dequeued)
 
-            # tokenize and pad
+            # tokenize and pad to the longest sequence in the batch
             input_ids = self.tokenizer(
                 inputs,
                 return_tensors="pt",
@@ -285,19 +285,51 @@ class NLPProxy:
     async def prompt_llm(
         self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
     ) -> str:
+        """prompts the LLM with a given prompt and returns the output
+
+        Args:
+            prompt (list[tuple[LLMRole, str]]): List of tuples containing the role and text. 
+                Use LLMRole.SYSTEM to give the llm background information and LLMRole.USER for user input.
+                LLMRole.ASSISTANT can be used to give the llm an example of how to respond.
+
+            max_output_tokens (int | None, optional): The maximum number of tokens to output or None for no limit
+
+        Returns:
+            str: llm output
+        """
         return await self.__token_counter.prompt_llm(prompt, max_output_tokens)
 
     async def get_embeddings(self, text: str) -> np.ndarray:
-        # TODO docs, also explain variable costs
+        """Gets a 768-dimensional embedding for the given text
+
+        Args:
+            text (str): Input text. This will counted against the token limit but at a lesser extent than the llm.
+                Every 10 tokens inputted into the embedding model is equivalent to 1 token inputted into the llm. # TODO: verify this
+
+        Returns:
+            np.ndarray: 768-dimensional embedding
+        """
         return await self.__token_counter.get_embeddings(text)
 
     def count_llm_tokens(self, text_or_prompt: str | list[tuple[LLMRole, str]]) -> int:
+        """Used to count the number of tokens that would be used by the llm. This can help agents manage their token usage.
+
+        Args:
+            text_or_prompt (str | list[tuple[LLMRole, str]]): Input text as a string or a list of tuples containing the role and text
+
+        Returns:
+            int: Number of tokens
+        """
         return self.__token_counter.count_llm_tokens(text_or_prompt)
 
     def count_embedding_tokens(self, text: str) -> int:
+        """Equivalent to count_llm_tokens but for the embedding model"""
         return self.__token_counter.count_embedding_tokens(text)
 
-    def get_remaining_tokens(self):
+    def get_remaining_tokens(self) -> int:
+        """Returns:
+            int: the number of tokens remaining for your agent for the round
+        """
         return self.__token_counter.remaining_tokens
 
 
