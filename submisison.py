@@ -3,6 +3,12 @@ from data import Location, redaction_dict
 from nlp import NLPProxy
 from util import redact
 
+"""
+Team Name: 
+Team Member Names: 
+Team Member Emails: 
+"""
+
 
 @register_agent
 class TeamNameHere(Agent):
