@@ -9,12 +9,16 @@ from util import redact
 AGENT_REGISTRY = {}
 
 
-def register_agent(cls):
-    """Type @register_agent on top of the class definition to register the agent"""
-    assert issubclass(cls, Agent)
-    assert cls.__name__ not in AGENT_REGISTRY
-    AGENT_REGISTRY[cls.__name__] = cls
-    return cls
+def register_agent(team_name: str):
+    """Type @register_agent("Team Name Here") on top of the class definition to register the agent"""
+
+    def decorator(cls):
+        assert issubclass(cls, Agent)
+        assert team_name not in AGENT_REGISTRY
+        AGENT_REGISTRY[team_name] = cls
+        return cls
+
+    return decorator
 
 
 class Agent(ABC):
@@ -135,7 +139,7 @@ class Agent(ABC):
 
 
 # TODO: rewrite this as one of our agents
-@register_agent
+@register_agent("Example Agent")
 class ExampleAgent(Agent):
     def __init__(
         self,

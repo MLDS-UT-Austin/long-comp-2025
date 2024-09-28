@@ -10,8 +10,8 @@ Team Member Emails:
 """
 
 
-@register_agent
-class TeamNameHere(Agent):
+@register_agent("Team Name Here")
+class MyAgent(Agent):
     def __init__(
         self,
         location: Location | None,
@@ -50,4 +50,4 @@ class TeamNameHere(Agent):
 
 
 # Validate agent
-TeamNameHere.validate()
+MyAgent.validate()
