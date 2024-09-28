@@ -185,7 +185,7 @@ if __name__ == "__main__":
     nlp = NLP(llm=DummyLLM(), embedding=DummyEmbedding())
 
     # Load agents from specific files ####################################################
-    import_agents_from_files("agents/submission.py")  # for you to run your agent
+    import_agents_from_files("submission.py")  # for you to run your agent
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
