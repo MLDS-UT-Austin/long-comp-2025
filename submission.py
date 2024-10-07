@@ -1,6 +1,6 @@
 from agent import Agent, register_agent
 from data import Location, redaction_dict
-from nlp import NLPProxy
+from nlp import NLPProxy, LLMRole
 from util import redact
 
 """
@@ -34,7 +34,7 @@ class MyAgent(Agent):
         questioner: int,
         question: str,
         answerer: int,
-        response: str,
+        answer: str,
     ) -> None:
         pass
 
