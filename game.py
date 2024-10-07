@@ -62,11 +62,13 @@ class Game:
 
     def __init__(
         self,
-        player_names: list[str],
         nlp: NLP,
+        player_names: list[str] | None = None,
         n_rounds: int = 20,
     ):
         # init game
+        if player_names is None:
+            player_names = list(AGENT_REGISTRY.keys())
         n_players = self.n_players = len(player_names)
         assert n_players >= 2
         self.player_names = player_names
