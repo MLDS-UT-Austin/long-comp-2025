@@ -73,7 +73,7 @@ class Agent(ABC):
         questioner: int,
         question: str,
         answerer: int,
-        response: str,
+        answer: str,
     ) -> None:
         """This method is called every round after a question is asked and answered.
 
@@ -81,7 +81,7 @@ class Agent(ABC):
             questioner (int): the index of the opponent who asked the question
             question (str): the question asked by the opponent
             answerer (int): the index of the opponent who answered the question
-            response (str): the response to the question
+            answer (str): the response to the question
         """
         pass
 
@@ -117,25 +117,26 @@ class Agent(ABC):
     @final
     def validate(cls) -> None:
         """Quick check for return types and edge cases"""
-        agent = cls(Location.AIRPLANE, 5, 5, NLPProxy())
-        answerer, question = asyncio.run(agent.ask_question())
-        answer0 = asyncio.run(agent.answer_question("question here"))
-        answer1 = asyncio.run(agent.answer_question(""))
-        asyncio.run(agent.analyze_response(1, "question here", 2, "answer here"))
-        asyncio.run(agent.analyze_response(0, "question here", 3, "answer here"))
-        asyncio.run(agent.analyze_response(2, "", 0, ""))
-        guess = asyncio.run(agent.guess_location())
-        accusation = asyncio.run(agent.accuse_player())
-        asyncio.run(agent.analyze_voting([0, 1, None, None]))
-        assert isinstance(answerer, int)
-        assert 1 <= answerer < 5
-        assert isinstance(question, str)
-        assert isinstance(answer0, str)
-        assert isinstance(answer1, str)
-        assert isinstance(guess, Location) or guess is None
-        assert isinstance(accusation, int) or accusation is None
-        if accusation is not None:
-            assert 1 <= accusation < 5
+        for loc, n_players in [(Location.AIRPLANE, 3), (None, 3), (Location.BEACH, 10), (None, 10)]:
+            agent = cls(loc, n_players, 5, NLPProxy())
+            answerer, question = asyncio.run(agent.ask_question())
+            answer0 = asyncio.run(agent.answer_question("question here"))
+            answer1 = asyncio.run(agent.answer_question(""))
+            asyncio.run(agent.analyze_response(1, "question here", 2, "answer here"))
+            asyncio.run(agent.analyze_response(0, "question here", 3, "answer here"))
+            asyncio.run(agent.analyze_response(2, "", 0, ""))
+            guess = asyncio.run(agent.guess_location())
+            accusation = asyncio.run(agent.accuse_player())
+            asyncio.run(agent.analyze_voting([0, 1, None, None]))
+            assert isinstance(answerer, int)
+            assert 1 <= answerer < 5
+            assert isinstance(question, str)
+            assert isinstance(answer0, str)
+            assert isinstance(answer1, str)
+            assert isinstance(guess, Location) or guess is None
+            assert isinstance(accusation, int) or accusation is None
+            if accusation is not None:
+                assert 1 <= accusation < 5
 
 
 # TODO: rewrite this as one of our agents
@@ -176,7 +177,7 @@ class ExampleAgent(Agent):
         questioner: int,
         question: str,
         answerer: int,
-        response: str,
+        answer: str,
     ) -> None:
         pass
 
