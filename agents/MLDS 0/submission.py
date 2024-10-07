@@ -54,6 +54,7 @@ class MLDS0(Agent):
                     int(np.argmax(self.avg_spy_score + 1 / (self.answerer_count + 1)))
                     + 1
                 )
+        # ensure questions are not repeated when possible
         if len(self.question_bank) == 0:
             self.question_bank = QUESTIONS.copy()
         question = self.question_bank.pop(random.randint(0, len(self.question_bank) - 1))
@@ -154,7 +155,7 @@ class MLDS0(Agent):
             (LLMRole.USER, f"Question: {question}, Answer: {answer}"),
         ]
         # fmt: on
-        reponse = await self.nlp.prompt_llm(prompt, 10, 0.0) # TODO: don't repeat questions
+        reponse = await self.nlp.prompt_llm(prompt, 10, 0.0)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
             self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)

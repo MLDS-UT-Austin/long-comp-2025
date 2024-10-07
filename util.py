@@ -1,9 +1,12 @@
+import asyncio
 import importlib
 import random
 import re
 import string
 import sys
+import time
 from collections import Counter
+from functools import wraps
 from glob import glob
 from os.path import dirname
 
@@ -58,3 +61,29 @@ def import_agents_from_files(glob_pattern: str) -> None:
         sys.path.insert(1, dirname(file))
         spec.loader.exec_module(module)
         sys.path = orig_path
+
+
+def rate_limit(requests_per_second: int):
+    """A decorator to rate limit a function to a certain number of requests per second
+    Args:
+        requests_per_second (int): the number of requests per second
+    """
+
+    def decorator(func):
+        last_time = 0
+        request_lock = asyncio.Lock()
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            async with request_lock:
+                nonlocal last_time
+                await asyncio.sleep(
+                    last_time + (1 / requests_per_second) - time.monotonic()
+                )
+                output = await func(*args, **kwargs)
+                last_time = time.monotonic()
+                return output
+
+        return wrapper
+
+    return decorator

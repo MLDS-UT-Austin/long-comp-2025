@@ -10,11 +10,12 @@ import numpy as np
 import torch
 from dotenv import load_dotenv
 from together import AsyncTogether  # type: ignore
-from together.error import RateLimitError
 from transformers import (  # type: ignore
     AutoModelForSequenceClassification,
     AutoTokenizer,
 )
+
+from util import rate_limit
 
 # Please set your API key in the .env file: "TOGETHER_API_KEY=<your-api-key>"
 load_dotenv()
@@ -88,16 +89,13 @@ class LlamaTokenizer(LLMTokenizer):
             return sum(len(token) for token in tokens)
 
 
-class Llama(LLM): # TODO also add rate limiting to embedding
-    REQUESTS_PER_SECOND = 1
-
+class Llama(LLM):
     def __init__(self):
         super().__init__()
         if isinstance(client, Exception):
             raise client
-        self.last_request_time = 0
-        self.request_lock = asyncio.Lock()
 
+    @rate_limit(requests_per_second=1)
     async def prompt(
         self,
         prompt: list[tuple[LLMRole, str]],
@@ -107,26 +105,17 @@ class Llama(LLM): # TODO also add rate limiting to embedding
         messages = [
             {"role": role.value, "content": content} for role, content in prompt
         ]
-        await self.request_lock.acquire()
-        await asyncio.sleep(self.last_request_time + 1 / self.REQUESTS_PER_SECOND - time.time())
-        while True:
-            try:
-                response = await client.chat.completions.create(
-                    model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
-                    messages=messages,
-                    max_tokens=max_output_tokens,
-                    temperature=temperature,
-                    top_p=0.7,
-                    top_k=50,
-                    repetition_penalty=1,
-                    stop=["<|eot_id|>"],
-                    stream=False,
-                )
-                break
-            except RateLimitError:
-                print("Rate limit error")
-        self.last_request_time = time.time()
-        self.request_lock.release()
+        response = await client.chat.completions.create(
+            model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+            messages=messages,
+            max_tokens=max_output_tokens,
+            temperature=temperature,
+            top_p=0.7,
+            top_k=50,
+            repetition_penalty=1,
+            stop=["<|eot_id|>"],
+            stream=False,
+        )
         return response.choices[0].message.content
 
 
@@ -159,12 +148,18 @@ class BERTTogether(Embedding):
         if isinstance(client, Exception):
             raise client
 
+    @rate_limit(requests_per_second=50)
     async def get_embeddings(self, text: str) -> np.ndarray:
         """returns a 768-dimensional embedding"""
-        response = await client.embeddings.create(
-            model="togethercomputer/m2-bert-80M-2k-retrieval",
-            input=text,
-        )
+        while True:
+            try:
+                response = await client.embeddings.create(
+                    model="togethercomputer/m2-bert-80M-2k-retrieval",
+                    input=text,
+                )
+                break
+            except RateLimitError:
+                print("Rate limited, retrying...")
         embedding = np.array(response.data[0].embedding)
         return embedding
 
@@ -368,7 +363,8 @@ class NLPProxy:
         return self.__token_counter.count_embedding_tokens(text)
 
     def get_remaining_tokens(self) -> int:
-        """Returns:
+        """
+        Returns:
             int: the number of tokens remaining for your agent for the round
         """
         return self.__token_counter.remaining_tokens
