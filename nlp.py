@@ -1,5 +1,7 @@
 import asyncio
 import math
+import os
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -8,6 +10,7 @@ import numpy as np
 import torch
 from dotenv import load_dotenv
 from together import AsyncTogether  # type: ignore
+from together.error import RateLimitError
 from transformers import (  # type: ignore
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -16,10 +19,13 @@ from transformers import (  # type: ignore
 # Please set your API key in the .env file: "TOGETHER_API_KEY=<your-api-key>"
 load_dotenv()
 
-try:
-    client = AsyncTogether()
-except Exception as e:
-    client = e
+if "TOGETHER_API_KEY" in os.environ:
+    try:
+        client = AsyncTogether()
+    except Exception as e:
+        client = e
+else:
+    client = Exception("Please set your API key in the .env file")
 
 
 class LLMRole(Enum):
@@ -40,7 +46,10 @@ class LLMTokenizer(ABC):
 class LLM(ABC):
     @abstractmethod
     async def prompt(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
         pass
 
@@ -79,29 +88,45 @@ class LlamaTokenizer(LLMTokenizer):
             return sum(len(token) for token in tokens)
 
 
-class Llama(LLM):
+class Llama(LLM): # TODO also add rate limiting to embedding
+    REQUESTS_PER_SECOND = 1
+
     def __init__(self):
         super().__init__()
         if isinstance(client, Exception):
             raise client
+        self.last_request_time = 0
+        self.request_lock = asyncio.Lock()
 
     async def prompt(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
         messages = [
             {"role": role.value, "content": content} for role, content in prompt
         ]
-        response = await client.chat.completions.create(
-            model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
-            messages=messages,
-            max_tokens=max_output_tokens,
-            temperature=0.7,  # TODO: make adjustable?
-            top_p=0.7,
-            top_k=50,
-            repetition_penalty=1,
-            stop=["<|eot_id|>"],
-            stream=False,
-        )
+        await self.request_lock.acquire()
+        await asyncio.sleep(self.last_request_time + 1 / self.REQUESTS_PER_SECOND - time.time())
+        while True:
+            try:
+                response = await client.chat.completions.create(
+                    model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+                    messages=messages,
+                    max_tokens=max_output_tokens,
+                    temperature=temperature,
+                    top_p=0.7,
+                    top_k=50,
+                    repetition_penalty=1,
+                    stop=["<|eot_id|>"],
+                    stream=False,
+                )
+                break
+            except RateLimitError:
+                print("Rate limit error")
+        self.last_request_time = time.time()
+        self.request_lock.release()
         return response.choices[0].message.content
 
 
@@ -109,7 +134,10 @@ class DummyLLM(LLM):
     """A dummy LLM for testing"""
 
     async def prompt(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
         return "Output from the LLM will be here"
 
@@ -216,9 +244,12 @@ class NLP:
     embedding: Embedding = field(default_factory=DummyEmbedding)
 
     async def prompt_llm(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
-        return await self.llm.prompt(prompt, max_output_tokens)
+        return await self.llm.prompt(prompt, max_output_tokens, temperature)
 
     async def get_embeddings(self, text: str) -> np.ndarray:
         return await self.embedding.get_embeddings(text)
@@ -244,7 +275,10 @@ class TokenCounterWrapper:
         self.remaining_tokens = self.token_limit
 
     async def prompt_llm(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
         if self.remaining_tokens is not None:
             self.remaining_tokens -= self.nlp.count_llm_tokens(prompt)
@@ -256,7 +290,7 @@ class TokenCounterWrapper:
             else:
                 max_output_tokens = min(max_output_tokens, self.remaining_tokens)
 
-            output = await self.nlp.prompt_llm(prompt, max_output_tokens)
+            output = await self.nlp.prompt_llm(prompt, max_output_tokens, temperature)
             self.remaining_tokens -= self.nlp.count_llm_tokens(output)
         return output
 
@@ -283,21 +317,28 @@ class NLPProxy:
         self.__token_counter = token_counter
 
     async def prompt_llm(
-        self, prompt: list[tuple[LLMRole, str]], max_output_tokens: int | None = None
+        self,
+        prompt: list[tuple[LLMRole, str]],
+        max_output_tokens: int | None = None,
+        temperature: float = 0.7,
     ) -> str:
         """prompts the LLM with a given prompt and returns the output
 
         Args:
-            prompt (list[tuple[LLMRole, str]]): List of tuples containing the role and text. 
+            prompt (list[tuple[LLMRole, str]]): List of tuples containing the role and text.
                 Use LLMRole.SYSTEM to give the llm background information and LLMRole.USER for user input.
                 LLMRole.ASSISTANT can be used to give the llm an example of how to respond.
 
             max_output_tokens (int | None, optional): The maximum number of tokens to output or None for no limit
 
+            temperature (float, optional): The temperature to use for the llm. A higher temperature produces more varied results. Defaults to 0.7.
+
         Returns:
             str: llm output
         """
-        return await self.__token_counter.prompt_llm(prompt, max_output_tokens)
+        return await self.__token_counter.prompt_llm(
+            prompt, max_output_tokens, temperature
+        )
 
     async def get_embeddings(self, text: str) -> np.ndarray:
         """Gets a 768-dimensional embedding for the given text
