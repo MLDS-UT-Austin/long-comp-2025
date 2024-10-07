@@ -151,15 +151,10 @@ class BERTTogether(Embedding):
     @rate_limit(requests_per_second=50)
     async def get_embeddings(self, text: str) -> np.ndarray:
         """returns a 768-dimensional embedding"""
-        while True:
-            try:
-                response = await client.embeddings.create(
-                    model="togethercomputer/m2-bert-80M-2k-retrieval",
-                    input=text,
-                )
-                break
-            except RateLimitError:
-                print("Rate limited, retrying...")
+        response = await client.embeddings.create(
+            model="togethercomputer/m2-bert-80M-2k-retrieval",
+            input=text,
+        )
         embedding = np.array(response.data[0].embedding)
         return embedding
 
