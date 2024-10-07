@@ -22,33 +22,35 @@ class Simulation:
     """A class to run multiple games concurrently and save/analyze the results"""
 
     nlp: NLP
+    agent_names: list[str] | None = None
     gave_save_dir: str = "games/simulation0"
     team_size: int = 2
     n_rounds: int = 20
 
     def __post_init__(self):
+        if self.agent_names is None:
+            self.agent_names = list(AGENT_REGISTRY.keys())
+
         # load and validate agents from AGENT_REGISTRY
-        self.agent_registry = AGENT_REGISTRY.copy()
-        for name, agent_class in self.agent_registry.items():
+        for name in self.agent_names:
             try:
-                agent_class.validate()
+                AGENT_REGISTRY[name].validate()
             except Exception as e:
                 print(f"Agent {name} failed validation: {e}")
                 raise e
 
         self.games: list[Game] = []
 
-    async def run(self, n_games: int = 1, agent_names: list[str] | None = None):
+    async def run(self, n_games: int = 1):
         """Run multiple games in parallel and adds the results to self.games
         Args:
             n_games (int, optional): number of games to run
             agent_names (list[str] | None, optional): names of agent classes to use
         """
+        assert self.agent_names is not None
         # Randomly sample agent classes to play in each game
-        if agent_names is None:
-            agent_names = list(self.agent_registry.keys())
         sampled_agent_names = [
-            random.sample(agent_names, self.team_size) for _ in range(n_games)
+            random.sample(self.agent_names, self.team_size) for _ in range(n_games)
         ]
 
         # Set up progress bar
@@ -56,7 +58,7 @@ class Simulation:
 
         # Run games concurrently
         games = [
-            Game(agents, self.nlp, self.n_rounds) for agents in sampled_agent_names
+            Game(self.nlp, agents, self.n_rounds) for agents in sampled_agent_names
         ]
         for game in games:
             game.tqdm_bar = tqdm_bar
@@ -101,9 +103,7 @@ class Simulation:
                 values: score or np.nan if the agent was not in the game
         """
         assert len(self.games) > 0, "must call run() or load_games() first"
-        df = pd.DataFrame(
-            index=range(len(self.games)), columns=self.agent_registry.keys()
-        )
+        df = pd.DataFrame(index=range(len(self.games)), columns=self.agent_names)
 
         for i, game in enumerate(self.games):
             game_scores = game.get_scores()
