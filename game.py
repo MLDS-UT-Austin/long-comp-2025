@@ -141,6 +141,20 @@ class Game:
         scores = pd.Series(data=scores_list, index=self.player_names)
         return scores
 
+    def get_percent_right_votes(self) -> pd.Series:
+        """Gets the percent of right votes for each player as a pandas series
+
+        Returns:
+            pd.Series: Pandas Series with the percent of right votes
+                index: player names
+                values: percent of right votes
+        """
+        votes = np.array([round.player_votes for round in self.rounds])
+        percent_right_votes = np.mean(votes == self.spy, axis=0)
+        percent_right_votes[self.spy] = np.nan
+        series = pd.Series(data=percent_right_votes, index=self.player_names)
+        return series
+
     def render(self):
         """Visualizes the game and plays the audio"""
         # init pygame
@@ -181,6 +195,7 @@ class Round:
         answerer, question = await game.players[questioner].ask_question()
         assert 1 <= answerer < game.n_players and isinstance(question, str)
         answerer = game.reverse_pov(answerer, pov=questioner)
+        # TODO: what if a team returns a massive string to blow up the token count?
 
         # answer question
         answer = await game.players[answerer].answer_question(question)

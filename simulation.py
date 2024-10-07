@@ -30,16 +30,15 @@ class Simulation:
     def __post_init__(self):
         if self.agent_names is None:
             self.agent_names = list(AGENT_REGISTRY.keys())
+        self.games: list[Game] = []
 
-        # load and validate agents from AGENT_REGISTRY
-        for name in self.agent_names:
+    def validate_agents(self):
+        for name in set(self.agent_names):
             try:
                 AGENT_REGISTRY[name].validate()
             except Exception as e:
                 print(f"Agent {name} failed validation: {e}")
                 raise e
-
-        self.games: list[Game] = []
 
     async def run(self, n_games: int = 1):
         """Run multiple games in parallel and adds the results to self.games
@@ -111,6 +110,44 @@ class Simulation:
             df.loc[i] = game_scores
 
         return df
+
+    def get_percent_right_votes(self) -> pd.DataFrame:
+        """Get the percentage of right votes of all agents in all games
+        Returns:
+            pd.DataFrame: Pandas DataFrame with the percentage of right votes
+                columns: agent names
+                index: game number
+                values: percentage of right votes or np.nan if the agent was not in the game
+        """
+        assert len(self.games) > 0, "must call run() or load_games() first"
+        df = pd.DataFrame(index=range(len(self.games)), columns=self.agent_names)
+
+        for i, game in enumerate(self.games):
+            game_scores = game.get_percent_right_votes()
+            assert game_scores.index.isin(df.columns).all()
+            df.loc[i] = game_scores
+
+        return df
+
+    def get_game_endtype_freq(self) -> pd.Series:
+        """Get the frequency of game end types in all games
+        Returns:
+            pd.Series: Pandas Series with the frequency of each game end type
+                index: game end type
+                values: frequency
+        """
+        c = Counter(g.game_state for g in self.games)
+        return pd.Series(c)
+
+    def get_game_duration_freq(self) -> pd.Series:
+        """Get the frequency of game durations in all games
+        Returns:
+            pd.Series: Pandas Series with the frequency of each game duration
+                index: game duration
+                values: frequency
+        """
+        c = Counter(len(g.rounds) for g in self.games)
+        return pd.Series(c)
 
     def _get_animation(
         self, duration: int = 10, fps: int = 30
@@ -186,39 +223,48 @@ if __name__ == "__main__":
 
     # Load agents from specific files ####################################################
     import_agents_from_files("submission.py")  # for you to run your agent
+    import_agents_from_files("agents/MLDS 0/submission.py")  # for you to run your agent
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
-    game = Game(player_names=["ExampleAgent", "TeamNameHere"], nlp=nlp, n_rounds=20)
+    game = Game(player_names=["Example Agent", "MLDS 0"], nlp=nlp, n_rounds=20)
     asyncio.run(game.play())
     print("Scores:", game.get_scores())
+    print("Percent Right Votes:", game.get_percent_right_votes())
+    print("Game End Type:", game.game_state)
+    print("Game Duration:", len(game.rounds))
     game.render()
 
-    # Run multiple games with randomly sampled players ####################################################
-    sim = Simulation(nlp)
-    asyncio.run(sim.run(n_games=10, agent_names=["ExampleAgent", "TeamNameHere"]))
-    print(
-        "Average Scores:", sim.get_scores().mean(axis=0)
-    )  # average scores of all agents
+    # Run multiple games with randomly sampled agents ####################################################
+    sim = Simulation(nlp, agent_names=["Example Agent", "MLDS 0"])
+    sim.validate_agents()
+    asyncio.run(sim.run(n_games=10))
+    # average scores of all agents
+    print("Average Scores:", sim.get_scores().mean(axis=0))
+    print("Average Percent Right Votes:", sim.get_percent_right_votes().mean(axis=0))
+    print("Game End Type Frequency:", sim.get_game_endtype_freq())
+    print("Game Duration Frequency:", sim.get_game_duration_freq())
     sim.visualize_scores()
-    # sim.save_visualization("simulation.mp4")
-    # sim.pickle_games()
+    sim.save_visualization("simulation.mp4")
+    sim.pickle_games()
 
     # Demo at Long Comp Intro Day
-    # game = Game(player_names=list(AGENT_REGISTRY.keys()), nlp=nlp, n_rounds=20)
-    # asyncio.run(game.play())
-    # game.render()
+    game = Game(nlp=nlp, n_rounds=20)
+    asyncio.run(game.play())
+    game.render()
 
     # Long Comp Day - Show teams over time
-    # sim = Simulation(nlp)
-    # asyncio.run(sim.run())
-    # sim.pickle_games()
-    # print("Average Scores:", sim.get_scores().mean(axis=0)) # average scores of all agents
-    # sim.visualize_scores()
-    # sim.save_visualization("simulation.mp4")
+    sim = Simulation(nlp)
+    sim.validate_agents()
+    asyncio.run(sim.run())
+    sim.pickle_games()
+    # average scores of all agents
+    print("Average Scores:", sim.get_scores().mean(axis=0))
+    sim.visualize_scores()
+    sim.save_visualization("simulation.mp4")
 
     # Show final teams
-    # finalists = ["ExampleAgent", "TeamNameHere"]
-    # game = Game(player_names=finalists, nlp=nlp, n_rounds=20)
-    # asyncio.run(game.play())
-    # game.render()
+    finalists = ["Example Agent", "Team Name Here"]
+    game = Game(player_names=finalists, nlp=nlp, n_rounds=20)
+    asyncio.run(game.play())
+    game.render()
