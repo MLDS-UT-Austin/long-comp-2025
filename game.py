@@ -1,6 +1,7 @@
 import asyncio
 import random
 from enum import Enum
+from functools import lru_cache
 from itertools import chain
 
 import pandas as pd  # type: ignore
@@ -119,7 +120,7 @@ class Game:
         tqdm_bar = (
             self.tqdm_bar
             if self.tqdm_bar
-            else tqdm(total=self.n_rounds, desc="Running Game: Rounds", colour="green")
+            else tqdm(total=self.n_rounds, desc="Running Game, Rounds", colour="green")
         )
 
         for _ in range(self.n_rounds):
@@ -166,6 +167,7 @@ class Game:
         series = pd.Series(data=percent_right_votes, index=self.player_names)
         return series
 
+    @lru_cache
     def get_conversation(self) -> pd.DataFrame:
         """Gets the conversation as a pandas dataframe
 
@@ -298,6 +300,7 @@ class Round:
             futures.append(game.players[i].analyze_voting(votes_pov))
         await asyncio.gather(*futures)
 
+    @lru_cache
     def get_conversation(self) -> list[tuple[int, str]]:
         """returns the conversation as a list of tuples of player index and their message"""
         game = self.game
