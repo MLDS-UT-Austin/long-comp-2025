@@ -43,7 +43,7 @@ class MLDS0(Agent):
 
     async def ask_question(self) -> tuple[int, str]:
         if self.spy:
-            answerer = int(np.argmin(self.answerer_count)) + 1
+            answerer = int(np.argmin(self.answerer_count + np.random.rand() * 0.1)) + 1
         else:
             # likely the last question that the agent will ask
             if self.est_n_rounds_remaining < self.n_players:
@@ -51,13 +51,21 @@ class MLDS0(Agent):
             # there will likely be another chance to ask a question,
             else:
                 answerer = (
-                    int(np.argmax(self.avg_spy_score + 1 / (self.answerer_count + 1)))
+                    int(
+                        np.argmax(
+                            self.avg_spy_score
+                            + 1 / (self.answerer_count + 1)
+                            + np.random.rand() * 0.1
+                        )
+                    )
                     + 1
                 )
         # ensure questions are not repeated when possible
         if len(self.question_bank) == 0:
             self.question_bank = QUESTIONS.copy()
-        question = self.question_bank.pop(random.randint(0, len(self.question_bank) - 1))
+        question = self.question_bank.pop(
+            random.randint(0, len(self.question_bank) - 1)
+        )
         return answerer, question
 
     async def _answer_question_spy(self, question: str) -> str:
@@ -169,12 +177,11 @@ class MLDS0(Agent):
     ) -> None:
         if answerer == 0:
             return
+        self.answerer_count[answerer - 1] += 1
         if self.spy:
             await self._analyze_response_spy(questioner, question, answerer, answer)
         else:
-            await self._analyze_response_nonspy(
-                questioner, question, answerer, answer
-            )
+            await self._analyze_response_nonspy(questioner, question, answerer, answer)
 
     async def guess_location(self) -> Location | None:
         # if the top location score is 0.5 higher than the second highest, guess that location
