@@ -1,10 +1,11 @@
 import asyncio
 import random
-from collections import Counter
-from dataclasses import dataclass
 from enum import Enum
+from itertools import chain
 
 import pandas as pd  # type: ignore
+import pygame
+import soundfile as sf
 from tqdm import tqdm  # type: ignore
 
 from agent import AGENT_REGISTRY, Agent
@@ -115,16 +116,20 @@ class Game:
     async def play(self):
         """runs the game
         call using asyncio.run(game.play())"""
+        tqdm_bar = (
+            self.tqdm_bar
+            if self.tqdm_bar
+            else tqdm(total=self.n_rounds, desc="Running Game: Rounds", colour="green")
+        )
+
         for _ in range(self.n_rounds):
             round = Round(self)
             await round.play()
-            if self.tqdm_bar is not None:
-                self.tqdm_bar.update(1)
+            tqdm_bar.update(1)
             self.rounds.append(round)
             if self.game_state != GameState.RUNNING:
                 return
-        if self.tqdm_bar is not None:
-            self.tqdm_bar.update(self.n_rounds - len(self.rounds))
+        tqdm_bar.update(self.n_rounds - len(self.rounds))
         self.game_state = GameState.NO_ONE_INDICTED
 
     def get_scores(self) -> pd.Series:
@@ -149,11 +154,35 @@ class Game:
                 index: player names
                 values: percent of right votes
         """
-        votes = np.array([round.player_votes for round in self.rounds])
+        votes = np.array(
+            [
+                round.player_votes
+                for round in self.rounds
+                if hasattr(round, "player_votes")
+            ]
+        )
         percent_right_votes = np.mean(votes == self.spy, axis=0)
         percent_right_votes[self.spy] = np.nan
         series = pd.Series(data=percent_right_votes, index=self.player_names)
         return series
+
+    def get_conversation(self) -> pd.DataFrame:
+        """Gets the conversation as a pandas dataframe
+
+        Returns:
+            pd.DataFrame: Pandas DataFrame with the conversation
+                columns: player id, message
+        """
+        conv_list = list(chain(*[round.get_conversation() for round in self.rounds]))
+        df = pd.DataFrame(conv_list, columns=["player", "message"])
+        return df
+
+    def pregenerate_audio(self):
+        """pre-generates audio for the game"""
+        for round in tqdm(
+            self.rounds, desc="Pregenerating Audio, Rounds", colour="green"
+        ):
+            round.pregenerate_audio()
 
     def render(self):
         """Visualizes the game and plays the audio"""
@@ -162,6 +191,19 @@ class Game:
         for round in self.rounds:
             round.render()
         # close pygame
+
+    def save_audio(self, path: str):
+        """saves the audio to a path"""
+        self.rounds[0].audio, "need to pregenerate audio"
+        sr = self.rounds[0].audio[0][2]
+        audio_list = [a for round in self.rounds for _, a, _ in round.audio]
+        audio_list = [np.pad(a, (0, sr // 2)) for a in audio_list]
+        comb_audio = np.concatenate(audio_list)
+        # save audio to path
+        sf.write(path, comb_audio, sr)
+
+    def __str__(self):
+        return f"Location: {self.location}, Spy: {self.spy}, Ending: {self.game_state}"
 
 
 class Round:
@@ -284,7 +326,7 @@ class Round:
             output.append((responder, msg))
 
         # indictment
-        if self.indicted is not None:
+        elif self.indicted is not None:
             # one of the accusers: "I think it's player {spy} are you the spy?"
             accuser = random.choice(
                 [i for i, x in enumerate(self.player_votes) if x == game.spy]
@@ -307,10 +349,25 @@ class Round:
 
     def pregenerate_audio(self):
         """pre-generates audio for the game"""
-        conversation = self.get_conversation()
-        self.audio: list[int, np.ndarray] = None
+        random.seed(42)
+        voices = random.sample(VOICES, self.game.n_players)
+        pitch_shifts = random.sample(PITCH_SHIFTS, self.game.n_players)
+        # list of (player, audio, sr)
+        self.audio: list[int, np.ndarray, int] = []
+        for player, message in self.get_conversation():
+            voice = voices[player]
+            ps = pitch_shifts[player]
+            audio, sr = text_to_speech(message, voice, ps)
+            self.audio.append((player, audio, sr))
 
     def render(self):
-        game = self.game
-        print(game.window)
         # render the round
+        self.audio, "need to pregenerate audio"
+        # game = self.game
+        # print(game.window)
+        for voice in self.audio:
+            player, audio, sr = voice
+            pygame.mixer.init(frequency=sr, channels=1)
+            sound = pygame.sndarray.make_sound(audio)
+            sound.play()
+            pygame.time.wait(int(sound.get_length() * 1000))

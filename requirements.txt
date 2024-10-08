@@ -9,3 +9,6 @@ matplotlib
 pandas
 einops
 opt-einsum
+pydub
+soundfile
+pyrubberband

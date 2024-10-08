@@ -53,7 +53,11 @@ class Simulation:
         ]
 
         # Set up progress bar
-        tqdm_bar = tqdm(total=n_games * self.n_rounds, desc="Rounds", colour="green")
+        tqdm_bar = tqdm(
+            total=n_games * self.n_rounds,
+            desc="Running Simulation, Rounds",
+            colour="green",
+        )
 
         # Run games concurrently
         games = [
@@ -213,7 +217,7 @@ if __name__ == "__main__":
     # Select the NLP model to use ####################################################
 
     # 1: Use Together.ai for Llama and BERT
-    # nlp = NLP(llm = Llama(), embedding=BERTTogether())
+    # nlp = NLP(llm=Llama(), embedding=BERTTogether())
 
     # 2: Use Together.ai for Llama but run BERT locally
     # nlp = NLP(llm = Llama(), embedding=BERTLocal(batch_size=8))
@@ -227,13 +231,16 @@ if __name__ == "__main__":
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
-    game = Game(player_names=["Example Agent", "MLDS 0"], nlp=nlp, n_rounds=20)
+    game = Game(player_names=["MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20)
     asyncio.run(game.play())
+    print(game)
     print("Scores:", game.get_scores())
     print("Percent Right Votes:", game.get_percent_right_votes())
-    print("Game End Type:", game.game_state)
     print("Game Duration:", len(game.rounds))
+    game.get_conversation().to_csv("conversation.csv", index=False)
+    game.pregenerate_audio()
     game.render()
+    game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
     sim = Simulation(nlp, agent_names=["Example Agent", "MLDS 0"])
