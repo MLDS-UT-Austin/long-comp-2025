@@ -18,7 +18,7 @@ class TestGame(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.player_names = [f"Agent{i}" for i in range(10)]
         self.nlp = MagicMock(spec=NLP)
-        self.game = Game(self.player_names, self.nlp, n_rounds=20)
+        self.game = Game(self.nlp, self.player_names, n_rounds=20)
 
     async def test_initialization(self):
         self.assertEqual(self.game.n_players, 10)
@@ -60,7 +60,7 @@ class TestRound(unittest.IsolatedAsyncioTestCase):
         # Setup mock players
         self.nlp = MagicMock(spec=NLP)  # Mock NLP object
         self.player_names = ["Agent0", "Agent1", "Agent2"]
-        self.game = Game(self.player_names, self.nlp, n_rounds=1)
+        self.game = Game(self.nlp, self.player_names, n_rounds=1)
         self.round = Round(self.game)
 
         # Set up player mocks
@@ -285,7 +285,6 @@ class TestRound(unittest.IsolatedAsyncioTestCase):
             p[i].accuse_player.assert_awaited_once()
             p[i].analyze_voting.assert_not_called()
 
-    
     async def test_indict_non_spy(self):
         add_pov = self.game.add_pov
         reverse_pov = self.game.reverse_pov
