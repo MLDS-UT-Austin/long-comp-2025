@@ -17,6 +17,8 @@ from transformers import (  # type: ignore
 
 from util import rate_limit
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # Please set your API key in the .env file: "TOGETHER_API_KEY=<your-api-key>"
 load_dotenv()
 
