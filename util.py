@@ -1,6 +1,6 @@
 import asyncio
 import importlib
-import io
+import os
 import re
 import sys
 import time
@@ -11,9 +11,9 @@ from os.path import dirname
 
 import gtts  # type: ignore
 import numpy as np
-import pydub  # type: ignore
-import pyrubberband
+import parselmouth
 from gtts import gTTS  # type: ignore
+from parselmouth.praat import call
 from together.error import RateLimitError
 
 from data import *
@@ -115,17 +115,18 @@ VOICES = [
     # ("es", "com.mx"),
     # ("es", "es"),
 ]
-PITCH_SHIFTS = [-5, -2, 0]
+PITCH_SHIFTS = [0.7, 0.85, 1.0, 1.15]
 
 
 def text_to_speech(
-    text, voice: tuple[str, str] = ("en", "com.au"), pitch_shift: float = 0
+    text, voice: tuple[str, str] = ("en", "com.au"), pitch_shift_factor: float = 1.0
 ) -> tuple[np.ndarray, int]:
     """_summary_
 
     Args:
         text (_type_): The text to convert to speech
         voice (tuple[str, str]): The voice to use for the speech, as a tuple of language and region
+        pitch_shift_factor (float): The factor by which to shift the pitch
 
     Returns:
         tuple[np.ndarray, int]: The numpy array of the audio and the sample rate
@@ -133,32 +134,35 @@ def text_to_speech(
     lang, tld = voice
 
     # call api
-    stream = io.BytesIO()
     tts = gTTS(text=text, lang=lang, tld=tld)
     while True:
         try:
-            tts.write_to_fp(stream)
+            tts.save(".temp.mp3")
             break
         except gtts.tts.gTTSError:
             continue
 
-    # convert to numpy array
-    stream.seek(0)
-    mp3 = pydub.AudioSegment.from_file(stream, format="mp3")
-    x = np.array(mp3.get_array_of_samples())
-    sr = mp3.frame_rate
+    # load into parselmouth object
+    sound = parselmouth.Sound(".temp.mp3")
+    os.remove(".temp.mp3")
+    sr = int(sound.sampling_frequency)
 
     # Adjust pitch
-    if pitch_shift != 0:
-        x = x.astype(np.float32)
-        max_val = max(abs(x))
-        x /= max_val
-        pad_len = 1000
-        x = np.pad(x, pad_len)
-        x = pyrubberband.pyrb.pitch_shift(x, sr, pitch_shift)
-        x = x[pad_len:-pad_len]
-        x *= max_val
-        x = x.astype(np.int16)
+    if pitch_shift_factor != 1.0:
+        manipulation = call(sound, "To Manipulation", 0.01, 75, 600)
+        pitch_tier = call(manipulation, "Extract pitch tier")
+        call(
+            pitch_tier,
+            "Multiply frequencies",
+            sound.xmin,
+            sound.xmax,
+            pitch_shift_factor,
+        )
+        call([pitch_tier, manipulation], "Replace pitch tier")
+        sound = call(manipulation, "Get resynthesis (overlap-add)")
+
+    x = np.squeeze(sound.values.T) * (2**15 - 1)
+    x = x.astype(np.int16)
 
     return x, sr
 
@@ -166,8 +170,8 @@ def text_to_speech(
 if __name__ == "__main__":
     import pygame
 
-    for voice in VOICES:
-        for ps in PITCH_SHIFTS:
+    for ps in PITCH_SHIFTS:
+        for voice in VOICES:
             print(f"Voice {voice}")
             text = "Hello, this is an AI voice generated from text."
             audio, sr = text_to_speech(text, voice, ps)
