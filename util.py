@@ -14,6 +14,7 @@ import numpy as np
 import pydub  # type: ignore
 import pyrubberband
 from gtts import gTTS  # type: ignore
+from together.error import RateLimitError
 
 from data import *
 
@@ -86,9 +87,12 @@ def rate_limit(requests_per_second: int):
                 await asyncio.sleep(
                     last_time + (1 / requests_per_second) - time.monotonic()
                 )
-                output = await func(*args, **kwargs)
                 last_time = time.monotonic()
-                return output
+            while True:
+                try:
+                    return await func(*args, **kwargs)
+                except RateLimitError:
+                    await asyncio.sleep(0.01)
 
         return wrapper
 
