@@ -89,10 +89,13 @@ def rate_limit(requests_per_second: int):
                 )
                 last_time = time.monotonic()
             while True:
+                wait_time = 0.01
                 try:
                     return await func(*args, **kwargs)
                 except RateLimitError:
-                    await asyncio.sleep(0.01)
+                    # exponential backoff
+                    await asyncio.sleep(wait_time)
+                    wait_time *= 1.2
 
         return wrapper
 
