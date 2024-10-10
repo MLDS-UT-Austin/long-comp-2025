@@ -193,6 +193,8 @@ class MLDS0(Agent):
 
     async def accuse_player(self) -> int | None:
         if self.spy:
+            if self.most_voted_player == 0:
+                return random.randint(1, self.n_players - 1)
             return self.most_voted_player
         else:
             if self.est_n_rounds_remaining <= 2:
