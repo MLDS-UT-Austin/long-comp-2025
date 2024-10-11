@@ -79,7 +79,7 @@ class MLDS0(Agent):
             (LLMRole.USER, question),
         ]
         # fmt: on
-        answer = await self.nlp.prompt_llm(prompt, 20, 0.0)
+        answer = await self.nlp.prompt_llm(prompt, 20, 0.25)
         return answer
 
     async def _answer_question_nonspy(self, question: str) -> str:
@@ -92,7 +92,7 @@ class MLDS0(Agent):
             (LLMRole.USER, question),
         ]
         # fmt: on
-        answer = await self.nlp.prompt_llm(prompt, 20, 0.0)
+        answer = await self.nlp.prompt_llm(prompt, 20, 0.25)
         return answer
 
     async def answer_question(self, question: str) -> str:
@@ -135,7 +135,7 @@ class MLDS0(Agent):
             (LLMRole.USER, f"Question: \"{question}\" Answer: \"{answer}\""),
         ]
         # fmt: on
-        reponse = await self.nlp.prompt_llm(prompt, 72, 0.0)
+        reponse = await self.nlp.prompt_llm(prompt, 72, 0.25)
         locs = self._get_locs_from_str(reponse)
         for loc in Location:
             if loc in locs:
@@ -163,7 +163,7 @@ class MLDS0(Agent):
             (LLMRole.USER, f"Question: {question}, Answer: {answer}"),
         ]
         # fmt: on
-        reponse = await self.nlp.prompt_llm(prompt, 10, 0.0)
+        reponse = await self.nlp.prompt_llm(prompt, 10, 0.25)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
             self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)
