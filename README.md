@@ -6,7 +6,7 @@ This is the repository for the 2025 UT Austin MLDS Long Competition where teams 
 
 ## Game Rules
 
-**<u>Setup</u>**: Each game is played with 4-12 players. All players are given a scenario/location except for the spy.
+**<u>Setup</u>**: Each game is played with 4-12 players. All players are given the location except for the spy.
 
 **<u>Spy Objective</u>**: The spy must figure out the location without revealing their identity.
 
