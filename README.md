@@ -66,7 +66,7 @@ TOGETHER_API_KEY = <your_together_api_key>
 
 **<u>Running Games/Simulations</u>**:
 
-See the bottom of `simulation.py` for an example of how to run games and simulations.
+See `main.py` for an example of how to run games and simulations.
 
 **<u>Submitting Your Agent</u>**:
 
