@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     # Load agents from specific files ####################################################
     import_agents_from_files("submission.py")  # for you to run your agent
-    import_agents_from_files("agents/MLDS 0/submission.py")  # for you to run your agent
+    import_agents_from_files("example agents/MLDS 0/agent.py")  # for you to run your agent
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["Example Agent", "MLDS 0"])
+    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0"])
     sim.validate_agents()
     asyncio.run(sim.run(n_games=10))
     # average scores of all agents
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     sim.save_visualization("simulation.mp4")
 
     # Show final teams
-    finalists = ["Example Agent", "Team Name Here"]
+    finalists = ["Team Name Here", "MLDS 0"]
     game = Game(player_names=finalists, nlp=nlp, n_rounds=20)
     asyncio.run(game.play())
     game.render()

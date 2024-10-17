@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 from typing import Coroutine
 
 import numpy as np
-from mydata import *
+from agent_data import *
 
 from agent import Agent, register_agent
 from data import Location, redaction_dict

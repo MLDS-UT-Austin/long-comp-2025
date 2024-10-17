@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd  # type: ignore
 
 from agent import *
+from submission import *
 from data import *
 from game import *
 from nlp import *
@@ -12,13 +13,12 @@ from util import *
 
 class TestGame(unittest.IsolatedAsyncioTestCase):
 
-    @patch("game.AGENT_REGISTRY", {f"Agent{i}": ExampleAgent for i in range(10)})
+    @patch("game.AGENT_REGISTRY", {f"Agent{i}": MyAgent for i in range(10)})
     @patch("game.random.choice", lambda x: Location.BEACH)
     @patch("game.random.randint", lambda a, b: 0)
     async def asyncSetUp(self):
         self.player_names = [f"Agent{i}" for i in range(10)]
-        self.nlp = MagicMock(spec=NLP)
-        self.game = Game(self.nlp, self.player_names, n_rounds=20)
+        self.game = Game(NLP(), self.player_names, n_rounds=20)
 
     async def test_initialization(self):
         self.assertEqual(self.game.n_players, 10)
@@ -53,7 +53,7 @@ class TestGame(unittest.IsolatedAsyncioTestCase):
 
 
 class TestRound(unittest.IsolatedAsyncioTestCase):
-    @patch("game.AGENT_REGISTRY", {f"Agent{i}": ExampleAgent for i in range(3)})
+    @patch("game.AGENT_REGISTRY", {f"Agent{i}": MyAgent for i in range(3)})
     @patch("game.random.choice", lambda x: Location.BEACH)
     @patch("game.random.randint", lambda a, b: 0)
     async def asyncSetUp(self):
