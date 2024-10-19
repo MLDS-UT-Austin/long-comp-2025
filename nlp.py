@@ -367,17 +367,20 @@ class NLPProxy:
         return self.__token_counter.remaining_tokens
 
 
-async def main():
-    bert = BERTLocal()
-    futures = [bert.get_embeddings("How many US states are there?") for _ in range(10)]
-    await asyncio.gather(*futures)
-
-
 if __name__ == "__main__":
+    pass
+    # llm_tokenizer = LlamaTokenizer()
+    # tokens = llm_tokenizer.count_tokens("How many US states are there?")
+    # print(tokens)
+
     # llm = Llama()
     # prompt = [(LLMRole.USER, "How many US states are there?")]
     # output = asyncio.run(llm.prompt(prompt, 100))
     # print(output)
+
+    # bert_tokenizer = BERTTokenizer()
+    # tokens = bert_tokenizer.count_tokens("How many US states are there?")
+    # print(tokens)
 
     # bert = BERTTogether()
     # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
@@ -387,9 +390,3 @@ if __name__ == "__main__":
     # bert = BERTLocal()
     # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
     # print(type(output))
-    # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
-    # print(type(output))
-    # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
-    # print(type(output))
-
-    asyncio.run(main())
