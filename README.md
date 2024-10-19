@@ -52,6 +52,8 @@ pip install -r requirements.txt
 
 If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager` by Don Jayamanne, which should prompt you to install conda.
 
+If you use additional packages, please add them to `requirements.txt`.
+
 *Note: this repository is thoroughly type-annotated. To catch type errors, you can install the VSCode Extension `Mypy Type Checker` by Microsoft.*
 
 **<u>Setting up Your LLM API Key</u>**:
@@ -74,4 +76,8 @@ See `main.py` for an example of how to run games and simulations.
 
 Write your agent in `submission.py` and use `@register_agent(<team name here>)` to register your agent under your team name. Also, please put your team member's name/emails in a comment at the top. You can name your class anything you want. Commit and push `submission.py` and any other files you added to the GitHub Classroom repository.
 
-Besides `submission.py` and any added files, do not modify any other files in the repository. For instance, do not change `data.py`. If you need to store data, use a separate file.
+## Rules
+
+* Besides `submission.py`, `requirements.txt`, and any added files, do not modify any other files in the repository. For instance, do not change `data.py`. If you need to store data, use a separate file.
+* Prompt injections are allowed.
+* You may not use any NLP models outside what is provided.
