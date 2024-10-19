@@ -96,6 +96,7 @@ class MLDS0(Agent):
         return answer
 
     async def answer_question(self, question: str) -> str:
+        question = question[:200] # limit question length
         if self.spy:
             return await self._answer_question_spy(question)
         else:
@@ -177,6 +178,8 @@ class MLDS0(Agent):
     ) -> None:
         if answerer == 0:
             return
+        question = question[:200] # limit question length
+        answer = answer[:200] # limit answer length
         self.answerer_count[answerer - 1] += 1
         if self.spy:
             await self._analyze_response_spy(questioner, question, answerer, answer)
