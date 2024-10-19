@@ -258,7 +258,7 @@ class TokenCounterWrapper:
     """Used for NLP instances that need to keep track of token usage"""
 
     nlp: NLP = field(default_factory=NLP)
-    token_limit: int = 4096
+    token_limit: int = 1000
 
     def __post_init__(self):
         self.reset_token_counter()
