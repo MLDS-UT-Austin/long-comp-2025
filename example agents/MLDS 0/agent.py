@@ -58,7 +58,8 @@ class MLDS0(Agent):
                     + np.random.rand() * 0.1
                 )
         # set the last questioner to be the least likely to be asked
-        answerer_score[self.last_questioner - 1] = -np.inf
+        if self.last_questioner != -1:
+            answerer_score[self.last_questioner - 1] = -np.inf
         answerer = int(np.argmax(answerer_score)) + 1
         # now, select the question
         # ensure questions are not repeated when possible
