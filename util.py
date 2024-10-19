@@ -176,7 +176,8 @@ if __name__ == "__main__":
             text = "Hello, this is an AI voice generated from text."
             audio, sr = text_to_speech(text, voice, ps)
 
-            pygame.mixer.init(frequency=sr, channels=1)
+            pygame.mixer.pre_init(frequency=sr, channels=1)
+            pygame.init()
             sound = pygame.sndarray.make_sound(audio)
             sound.play()
             pygame.time.wait(int(sound.get_length() * 1000))

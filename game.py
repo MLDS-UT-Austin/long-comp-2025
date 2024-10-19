@@ -190,7 +190,9 @@ class Game:
     def render(self):
         """Visualizes the game and plays the audio"""
         # init pygame
-        self.window = None
+        pygame.mixer.pre_init(frequency=sr, channels=1)
+        pygame.init()
+
         for round in self.rounds:
             round.render()
         # close pygame
@@ -381,7 +383,6 @@ class Round:
         # print(game.window)
         for voice in self.audio:
             player, audio, sr = voice
-            pygame.mixer.init(frequency=sr, channels=1)
             sound = pygame.sndarray.make_sound(audio)
             sound.play()
             pygame.time.wait(int(sound.get_length() * 1000))
