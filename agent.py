@@ -125,7 +125,7 @@ class Agent(ABC):
                 answer0 = asyncio.run(agent.answer_question("question here"))
                 answer1 = asyncio.run(agent.answer_question(""))
                 asyncio.run(agent.analyze_response(1, "question here", 2, "answer here"))
-                asyncio.run(agent.analyze_response(0, "question here", 3, "answer here"))
+                asyncio.run(agent.analyze_response(0, "question here", 2, "answer here"))
                 asyncio.run(agent.analyze_response(2, "", 0, ""))
                 guess = asyncio.run(agent.guess_location())
                 accusation = asyncio.run(agent.accuse_player())
