@@ -24,12 +24,13 @@ class Simulation:
     nlp: NLP
     agent_names: list[str] | None = None
     gave_save_dir: str = "games/simulation0"
-    team_size: int = 2
+    team_size: int = 3
     n_rounds: int = 20
 
     def __post_init__(self):
         if self.agent_names is None:
             self.agent_names = list(AGENT_REGISTRY.keys())
+        assert len(self.agent_names) >= self.team_size, "not enough agents"
         self.games: list[Game] = []
 
     def validate_agents(self):
