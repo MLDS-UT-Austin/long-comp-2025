@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
-    game = Game(player_names=["MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20)
+    game = Game(player_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20)
     asyncio.run(game.play())
     print(game)
     print("Scores:", game.get_scores())

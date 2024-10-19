@@ -32,6 +32,7 @@ class MLDS0(Agent):
         self.answerer_count = np.zeros(n_players - 1, dtype=int)
         self.round = 0
         self.est_n_rounds_remaining = n_rounds
+        self.last_questioner = -1
         self.most_voted_player = random.randint(1, n_players - 1)
         self.question_bank = QUESTIONS.copy()
 
@@ -43,23 +44,23 @@ class MLDS0(Agent):
 
     async def ask_question(self) -> tuple[int, str]:
         if self.spy:
-            answerer = int(np.argmin(self.answerer_count + np.random.rand() * 0.1)) + 1
+            # Give those who haven't been asked a higher chance of being asked
+            answerer_score = -self.answerer_count + np.random.rand() * 0.1
         else:
-            # likely the last question that the agent will ask
+            # it's likely that this is the last question we will ask, so question the spy
             if self.est_n_rounds_remaining < self.n_players:
-                answerer = int(np.argmax(self.avg_spy_score)) + 1
-            # there will likely be another chance to ask a question,
+                answerer_score = self.avg_spy_score
+            # there will likely be another chance to ask a question, so explore the other players
             else:
-                answerer = (
-                    int(
-                        np.argmax(
-                            self.avg_spy_score
-                            + 1 / (self.answerer_count + 1)
-                            + np.random.rand() * 0.1
-                        )
-                    )
-                    + 1
+                answerer_score = (
+                    self.avg_spy_score
+                    + 1 / (self.answerer_count + 1)
+                    + np.random.rand() * 0.1
                 )
+        # set the last questioner to be the least likely to be asked
+        answerer_score[self.last_questioner - 1] = -np.inf
+        answerer = int(np.argmax(answerer_score)) + 1
+        # now, select the question
         # ensure questions are not repeated when possible
         if len(self.question_bank) == 0:
             self.question_bank = QUESTIONS.copy()
@@ -96,7 +97,7 @@ class MLDS0(Agent):
         return answer
 
     async def answer_question(self, question: str) -> str:
-        question = question[:200] # limit question length
+        question = question[:200]  # limit question length
         if self.spy:
             return await self._answer_question_spy(question)
         else:
@@ -176,10 +177,11 @@ class MLDS0(Agent):
         answerer: int,
         answer: str,
     ) -> None:
+        self.last_questioner = questioner
         if answerer == 0:
             return
-        question = question[:200] # limit question length
-        answer = answer[:200] # limit answer length
+        question = question[:200]  # limit question length
+        answer = answer[:200]  # limit answer length
         self.answerer_count[answerer - 1] += 1
         if self.spy:
             await self._analyze_response_spy(questioner, question, answerer, answer)

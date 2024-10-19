@@ -14,7 +14,9 @@ This is the repository for the 2025 UT Austin MLDS Long Competition where teams 
 
 **<u>Gameplay</u>**: Each game consists of a fixed number of rounds. In each round, the following happens:
 
-1. **<u>Questioning</u>**: A random player starts by asking another player a question about the location. The player who answers the question will be the one to ask the question in the next round.
+1. **<u>Questioning</u>**: A random player starts by asking another player a question about the location. The player who answers the question will be the one to ask the question in the next round. You can ask a question to any player except the player who asked you a question the previous round.
+
+   Ex: A --> B --> A is not allowed.
 2. **<u>Questioning Analysis</u>**: All players are given time to analyze the question/answer.
 3. **<u>Guessing</u>**: The spy may guess the location. This will end the game.
 4. **<u>Accusation</u>**: Players may accuse another player of being the spy. Successfully indicting a player will end the game. For a player to be indicted, the following conditions must be met:

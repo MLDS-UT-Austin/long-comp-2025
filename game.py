@@ -6,7 +6,7 @@ from itertools import chain
 
 import pandas as pd  # type: ignore
 import pygame
-import soundfile as sf
+import soundfile as sf # type: ignore
 from tqdm import tqdm  # type: ignore
 
 from agent import AGENT_REGISTRY, Agent
@@ -37,6 +37,7 @@ class Game:
     location: Location
     spy: int
     questioner: int  # current questioner
+    last_questioner: int = -1  # last questioner
     players: list[Agent]
     player_nlps: list[TokenCounterWrapper]  # each keeps track of tokens per round
     rounds: list["Round"]
@@ -234,12 +235,21 @@ class Round:
         for nlp in game.player_nlps:
             nlp.reset_token_counter()
 
-        # TODO: should we increase the token count for the questioner and answerer?
         # ask question
         answerer, question = await game.players[questioner].ask_question()
         assert 1 <= answerer < game.n_players and isinstance(question, str)
         answerer = game.reverse_pov(answerer, pov=questioner)
-        # TODO: what if a team returns a massive string to blow up the token count?
+
+        # if the questioner selected the last questioner, select a random player
+        if game.last_questioner != -1 and answerer == game.last_questioner:
+            print("questioner selected last questioner, selecting random player")
+            answerer = random.choice(
+                [
+                    i
+                    for i in range(game.n_players)
+                    if i != questioner and i != game.last_questioner
+                ]
+            )
 
         # answer question
         answer = await game.players[answerer].answer_question(question)
@@ -257,6 +267,7 @@ class Round:
 
         self.question = question
         self.answer = answer
+        game.last_questioner = questioner
         game.questioner = self.answerer = answerer
 
         # spy voting
