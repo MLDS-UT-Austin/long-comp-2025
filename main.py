@@ -14,15 +14,17 @@ if __name__ == "__main__":
     nlp = NLP(llm=DummyLLM(), embedding=DummyEmbedding())
 
     # Load agents from specific files ####################################################
-    import_agents_from_files("submission.py")  # for you to run your agent
-    import_agents_from_files(
-        "example agents/MLDS 0/agent.py"
-    )  # for you to run an example agent
-    # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
+    # for you to run your agent
+    import_agents_from_files("submission.py")
+    # for you to run an example agent
+    import_agents_from_files("example agents/agents.py")
+    # for us to run your agents
+    # import_agents_from_files("github classroom submissions/**/submission.py")
 
     # Run a single game ####################################################
+    # Feel free to edit the players, duplicate players are allowed
     game = Game(
-        player_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20
+        player_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 1"], nlp=nlp, n_rounds=20
     )
     game.play()
     print(game)
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     # game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"])
+    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 1"])
     sim.validate_agents()
     sim.run(n_games=10)
     # average scores of all agents
