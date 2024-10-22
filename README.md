@@ -50,7 +50,7 @@ conda activate long_comp
 pip install -r requirements.txt
 ```
 
-If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager` by Don Jayamanne, which should prompt you to install conda.
+If you do not have conda installed, you can install it [here](https://docs.anaconda.com/miniconda/). Additionally, if you use VSCode, the VSCode Extension `Python Environment Manager` by Don Jayamanne is nice for managing and selecting default conda environments.
 
 If you use additional packages, please add them to `requirements.txt`.
 
@@ -71,6 +71,8 @@ TOGETHER_API_KEY = <your_together_api_key>
 **<u>Running Games/Simulations</u>**:
 
 See `main.py` for an example of how to run games and simulations.
+
+*Note: by default, a dummy llm and embedding model are selected. You can change this at the top of `main.py`.*
 
 **<u>Submitting Your Agent</u>**:
 
