@@ -337,7 +337,7 @@ class NLPProxy:
 
         Args:
             text (str): Input text. This will counted against the token limit but at a lesser extent than the llm.
-                Every 10 tokens inputted into the embedding model is equivalent to 1 token inputted into the llm. # TODO: verify this
+                Every 10 tokens inputted into the embedding model is equivalent to 1 token inputted into the llm.
 
         Returns:
             np.ndarray: 768-dimensional embedding
