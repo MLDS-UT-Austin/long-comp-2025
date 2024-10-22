@@ -30,7 +30,9 @@ class Simulation:
     def __post_init__(self):
         if self.agent_names is None:
             self.agent_names = list(AGENT_REGISTRY.keys())
-        assert len(self.agent_names) >= self.team_size, "not enough agents"
+        assert self.team_size >= 3, "team size must be at least 3"
+        msg = f"the number of agents ({len(self.agent_names)}) must be at least the team size ({self.team_size})"
+        assert len(self.agent_names) >= self.team_size, msg
         self.games: list[Game] = []
 
     def validate_agents(self):
@@ -107,7 +109,9 @@ class Simulation:
                 values: score or np.nan if the agent was not in the game
         """
         assert len(self.games) > 0, "must call run() or load_games() first"
-        df = pd.DataFrame(index=range(len(self.games)), columns=self.agent_names)
+        df = pd.DataFrame(
+            index=range(len(self.games)), columns=list(set(self.agent_names))
+        )
 
         for i, game in enumerate(self.games):
             game_scores = game.get_scores()
@@ -125,7 +129,9 @@ class Simulation:
                 values: percentage of right votes or np.nan if the agent was not in the game
         """
         assert len(self.games) > 0, "must call run() or load_games() first"
-        df = pd.DataFrame(index=range(len(self.games)), columns=self.agent_names)
+        df = pd.DataFrame(
+            index=range(len(self.games)), columns=list(set(self.agent_names))
+        )
 
         for i, game in enumerate(self.games):
             game_scores = game.get_percent_right_votes()

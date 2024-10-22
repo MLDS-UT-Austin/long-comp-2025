@@ -73,7 +73,7 @@ class Game:
         if player_names is None:
             player_names = list(AGENT_REGISTRY.keys())
         n_players = self.n_players = len(player_names)
-        assert n_players >= 2
+        assert n_players >= 3, "need at least 3 players"
         self.player_names = player_names
         self.n_rounds = n_rounds
 
@@ -146,6 +146,7 @@ class Game:
         scores_list[self.spy] = self.spy_scoring[self.game_state]
 
         scores = pd.Series(data=scores_list, index=self.player_names)
+        scores = scores.groupby(scores.index).mean()
         return scores
 
     def get_percent_right_votes(self) -> pd.Series:
@@ -166,6 +167,7 @@ class Game:
         percent_right_votes = np.mean(votes == self.spy, axis=0)
         percent_right_votes[self.spy] = np.nan
         series = pd.Series(data=percent_right_votes, index=self.player_names)
+        series = series.groupby(series.index).mean()
         return series
 
     @lru_cache

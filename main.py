@@ -40,7 +40,7 @@ if __name__ == "__main__":
     game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0"])
+    sim = Simulation(nlp, agent_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"])
     sim.validate_agents()
     asyncio.run(sim.run(n_games=10))
     # average scores of all agents
