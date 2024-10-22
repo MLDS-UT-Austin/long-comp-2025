@@ -35,9 +35,9 @@ if __name__ == "__main__":
     conv["player"] += 1
     conv.to_csv("conversation.csv", index=False)
 
-    game.pregenerate_audio()
-    game.render()
-    game.save_audio("game.wav")
+    # game.pregenerate_audio()
+    # game.render()
+    # game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
     sim = Simulation(nlp, agent_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"])
@@ -48,6 +48,6 @@ if __name__ == "__main__":
     print("Average Percent Right Votes:", sim.get_percent_right_votes().mean(axis=0))
     print("Game End Type Frequency:", sim.get_game_endtype_freq())
     print("Game Duration Frequency:", sim.get_game_duration_freq())
-    sim.visualize_scores()
-    sim.save_visualization("simulation.mp4")
-    sim.pickle_games()
+    # sim.visualize_scores()
+    # sim.save_visualization("simulation.mp4")
+    # sim.pickle_games()
