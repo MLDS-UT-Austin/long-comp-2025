@@ -50,7 +50,7 @@ conda activate long_comp
 pip install -r requirements.txt
 ```
 
-If you do not have conda installed, you can install the VSCode Extension `Python Environment Manager` by Don Jayamanne, which should prompt you to install conda.
+If you do not have conda installed, you can install it [here](https://docs.anaconda.com/miniconda/). Additionally, if you use VSCode, the VSCode Extension `Python Environment Manager` by Don Jayamanne is nice for managing and selecting default conda environments.
 
 If you use additional packages, please add them to `requirements.txt`.
 
