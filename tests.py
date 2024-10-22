@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd  # type: ignore
 
 from agent import *
-from submission import *
 from data import *
 from game import *
 from nlp import *
+from submission import *
 from util import *
 
 
@@ -50,6 +50,18 @@ class TestGame(unittest.IsolatedAsyncioTestCase):
             for j in range(3):
                 assert self.game.add_pov(self.game.reverse_pov(j, pov=i), pov=i) == j
                 assert self.game.reverse_pov(self.game.add_pov(j, pov=i), pov=i) == j
+
+    @patch("game.AGENT_REGISTRY", {f"Agent{i}": MyAgent for i in range(10)})
+    async def test_stress(self):
+        # run 1000 games in parallel
+        games = [Game(NLP(), self.player_names, n_rounds=20) for _ in range(100)]
+        await asyncio.gather(*[game.play() for game in games])
+        for game in games:
+            str(game)
+            game.get_scores()
+            game.get_percent_right_votes()
+            self.assertGreater(len(game.rounds), 0)
+            game.get_conversation()
 
 
 class TestRound(unittest.IsolatedAsyncioTestCase):

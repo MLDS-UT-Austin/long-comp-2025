@@ -348,9 +348,9 @@ class Round:
         elif self.indicted is not None:
             # one of the accusers: "I think it's player {spy} are you the spy?"
             accuser = random.choice(
-                [i for i, x in enumerate(self.player_votes) if x == game.spy]
+                [i for i, x in enumerate(self.player_votes) if x == self.indicted]
             )
-            msg = random.choice(ACCUSATION).format(spy=game.spy + 1)
+            msg = random.choice(ACCUSATION).format(spy=self.indicted + 1)
             output.append((accuser, msg))
             if game.game_state == GameState.SPY_INDICTED:
                 # spy: I am the spy
