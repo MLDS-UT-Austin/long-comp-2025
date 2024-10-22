@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # Run a single game ####################################################
     # Feel free to edit the players, duplicate players are allowed
     game = Game(
-        player_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 1"], nlp=nlp, n_rounds=20
+        player_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 2"], nlp=nlp, n_rounds=20
     )
     game.play()
     print(game)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 1"])
+    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 2"])
     sim.validate_agents()
     sim.run(n_games=10)
     # average scores of all agents
