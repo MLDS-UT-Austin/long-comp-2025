@@ -166,6 +166,10 @@ class Game:
                 if hasattr(round, "player_votes")
             ]
         )
+
+        if len(votes) == 0:
+            return pd.Series(index=list(set(self.player_names)))
+
         percent_right_votes = np.mean(votes == self.spy, axis=0)
         percent_right_votes[self.spy] = np.nan
         series = pd.Series(data=percent_right_votes, index=self.player_names)
