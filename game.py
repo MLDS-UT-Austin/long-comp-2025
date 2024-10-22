@@ -6,7 +6,7 @@ from itertools import chain
 
 import pandas as pd  # type: ignore
 import pygame
-import soundfile as sf # type: ignore
+import soundfile as sf  # type: ignore
 from tqdm import tqdm  # type: ignore
 
 from agent import AGENT_REGISTRY, Agent
@@ -191,7 +191,7 @@ class Game:
         """Visualizes the game and plays the audio"""
         # init pygame
         sr = self.rounds[0].audio[0][2]
-        pygame.mixer.pre_init(frequency=sr, channels=1)
+        pygame.mixer.pre_init(frequency=sr, channels=1, allowedchanges=0)
         pygame.init()
 
         for round in self.rounds:
@@ -284,13 +284,15 @@ class Round:
             return
 
         # collect votes
-        votes = self.player_votes = await asyncio.gather(
+        votes = await asyncio.gather(
             *[player.accuse_player() for player in game.players]
         )
         assert all(1 <= vote < game.n_players for vote in votes if vote is not None)
         for i, vote in enumerate(votes):
             if vote is not None:
                 votes[i] = game.reverse_pov(vote, pov=i)
+
+        self.player_votes = votes
 
         # count votes
         indicted = self.indicted = count_votes(votes, game.n_players)
