@@ -76,7 +76,7 @@ class LlamaTokenizer(LLMTokenizer):
     def __init__(self):
         # Use NousResearch bc it doesn't have retricted access
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "NousResearch/Meta-Llama-3-8B-Instruct"
+            "NousResearch/Meta-Llama-3-70B-Instruct"
         )
 
     def count_tokens(self, text_or_prompt: str | list[tuple[LLMRole, str]]) -> int:
@@ -108,7 +108,7 @@ class Llama(LLM):
             {"role": role.value, "content": content} for role, content in prompt
         ]
         response = await client.chat.completions.create(
-            model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+            model="meta-llama/Meta-Llama-3-70B-Instruct-Lite",
             messages=messages,
             max_tokens=max_output_tokens,
             temperature=temperature,
