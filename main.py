@@ -15,25 +15,34 @@ if __name__ == "__main__":
 
     # Load agents from specific files ####################################################
     import_agents_from_files("submission.py")  # for you to run your agent
-    import_agents_from_files("example agents/MLDS 0/agent.py")  # for you to run your agent
+    import_agents_from_files(
+        "example agents/MLDS 0/agent.py"
+    )  # for you to run an example agent
     # import_agents_from_files("github classroom submissions/**/submission.py") # for us to run your agents
 
     # Run a single game ####################################################
-    game = Game(player_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20)
-    asyncio.run(game.play())
+    game = Game(
+        player_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20
+    )
+    game.play()
     print(game)
     print("Scores:", game.get_scores())
     print("Percent Right Votes:", game.get_percent_right_votes())
     print("Game Duration:", len(game.rounds))
-    game.get_conversation().to_csv("conversation.csv", index=False)
+
+    conv = game.get_conversation()
+    # convert 0-indexed player to 1-indexed player
+    conv["player"] += 1
+    conv.to_csv("conversation.csv", index=False)
+
     game.pregenerate_audio()
     game.render()
     game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0"])
+    sim = Simulation(nlp, agent_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"])
     sim.validate_agents()
-    asyncio.run(sim.run(n_games=10))
+    sim.run(n_games=10)
     # average scores of all agents
     print("Average Scores:", sim.get_scores().mean(axis=0))
     print("Average Percent Right Votes:", sim.get_percent_right_votes().mean(axis=0))
@@ -42,24 +51,3 @@ if __name__ == "__main__":
     sim.visualize_scores()
     sim.save_visualization("simulation.mp4")
     sim.pickle_games()
-
-    # Demo at Long Comp Intro Day
-    game = Game(nlp=nlp, n_rounds=20)
-    asyncio.run(game.play())
-    game.render()
-
-    # Long Comp Day - Show teams over time
-    sim = Simulation(nlp)
-    sim.validate_agents()
-    asyncio.run(sim.run())
-    sim.pickle_games()
-    # average scores of all agents
-    print("Average Scores:", sim.get_scores().mean(axis=0))
-    sim.visualize_scores()
-    sim.save_visualization("simulation.mp4")
-
-    # Show final teams
-    finalists = ["Team Name Here", "MLDS 0"]
-    game = Game(player_names=finalists, nlp=nlp, n_rounds=20)
-    asyncio.run(game.play())
-    game.render()

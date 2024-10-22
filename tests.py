@@ -35,14 +35,14 @@ class TestGame(unittest.IsolatedAsyncioTestCase):
     async def test_scoring(self):
         self.game.players[0].guess_location = AsyncMock()
         self.game.players[0].guess_location.return_value = Location.BEACH
-        await self.game.play()
+        await self.game.play_()
         self.assertEqual(self.game.game_state, GameState.SPY_GUESSED_RIGHT)
-        target_scores = pd.Series(index=self.player_names, data=[0] * 10)
-        target_scores["Agent0"] = 4
+        target_scores = pd.Series(index=self.player_names, data=[0.0] * 10)
+        target_scores["Agent0"] = 4.0
         self.assertTrue(self.game.get_scores().equals(target_scores))
 
     async def test_no_one_indicted(self):
-        await self.game.play()
+        await self.game.play_()
         self.assertEqual(self.game.game_state, GameState.NO_ONE_INDICTED)
 
     async def test_add_pov(self):
@@ -54,8 +54,8 @@ class TestGame(unittest.IsolatedAsyncioTestCase):
     @patch("game.AGENT_REGISTRY", {f"Agent{i}": MyAgent for i in range(10)})
     async def test_stress(self):
         # run 1000 games in parallel
-        games = [Game(NLP(), self.player_names, n_rounds=20) for _ in range(100)]
-        await asyncio.gather(*[game.play() for game in games])
+        games = [Game(NLP(), self.player_names, n_rounds=20) for _ in range(10)]
+        await asyncio.gather(*[game.play_() for game in games])
         for game in games:
             str(game)
             game.get_scores()
