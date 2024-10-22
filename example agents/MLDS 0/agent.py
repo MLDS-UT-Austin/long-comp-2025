@@ -218,7 +218,3 @@ class MLDS0(Agent):
         del c[None]
         if len(c) > 0:
             self.most_voted_player = c.most_common(1)[0][0]  # type: ignore
-
-
-# Validate agent
-# MLDS0.validate()
