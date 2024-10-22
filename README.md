@@ -76,7 +76,7 @@ See `main.py` for an example of how to run games and simulations.
 
 **<u>Submitting Your Agent</u>**:
 
-Write your agent in `submission.py` and use `@register_agent(<team name here>)` to register your agent under your team name. Also, please put your team member's name/emails in a comment at the top. You can name your class anything you want. Commit and push `submission.py` and any other files you added to the GitHub Classroom repository.
+Write your agent in `submission.py` and use `@register_agent(<team name here>)` to register your agent under your team name. Also, please put your team member's name/emails/EIDs in a comment at the top. You can name your class anything you want. Commit and push `submission.py` and any other files you added to the GitHub Classroom repository.
 
 ## Rules
 
