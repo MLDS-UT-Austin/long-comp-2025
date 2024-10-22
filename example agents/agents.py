@@ -13,7 +13,7 @@ from util import redact
 
 @register_agent("MLDS 0")
 class MLDS0(Agent):
-    SCORE_LR = 0.5
+    """Example agent that uses multi-shot prompting to generate answers and analyze responses."""
 
     def __init__(
         self,
@@ -222,7 +222,7 @@ class MLDS0(Agent):
 
 @register_agent("MLDS 1")
 class MLDS0(Agent):
-    SCORE_LR = 0.5
+    """Same as MLDS 0, but more agressive in accusing players of being the spy."""
 
     def __init__(
         self,
@@ -429,10 +429,9 @@ class MLDS0(Agent):
             self.most_voted_player = c.most_common(1)[0][0]  # type: ignore
 
 
-
 @register_agent("MLDS 2")
 class MLDS0(Agent):
-    SCORE_LR = 0.5
+    """Same as MLDS 0, but less agressive in accusing players of being the spy."""
 
     def __init__(
         self,
