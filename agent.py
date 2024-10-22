@@ -40,7 +40,7 @@ class Agent(ABC):
         location (Location | None): the enum location for the game or None if the agent is the spy
         n_players (int): number of players including yourself
         n_rounds (int): total number rounds. Each round includes a question, answer, and a vote.
-        nlp (NLPProxy): allows you to prompt the llm and get embeddings. You are given # TODO tokens per round.
+        nlp (NLPProxy): allows you to prompt the llm and get embeddings. You are given a set number of tokens per round.
             If you exceed the token limit, get_prompt will return an empty string and get_embeddings will return a 0 array.
         """
         pass
