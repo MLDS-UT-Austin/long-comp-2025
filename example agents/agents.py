@@ -220,12 +220,6 @@ class MLDS0(Agent):
             self.most_voted_player = c.most_common(1)[0][0]  # type: ignore
 
 
-# Validate agent
-# MLDS0.validate()
-
-
-
-
 @register_agent("MLDS 1")
 class MLDS0(Agent):
     SCORE_LR = 0.5
