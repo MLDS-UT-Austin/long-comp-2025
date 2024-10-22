@@ -72,6 +72,8 @@ TOGETHER_API_KEY = <your_together_api_key>
 
 See `main.py` for an example of how to run games and simulations.
 
+*Note: by default, a dummy llm and embedding model are selected. You can change this at the top of `main.py`.*
+
 **<u>Submitting Your Agent</u>**:
 
 Write your agent in `submission.py` and use `@register_agent(<team name here>)` to register your agent under your team name. Also, please put your team member's name/emails in a comment at the top. You can name your class anything you want. Commit and push `submission.py` and any other files you added to the GitHub Classroom repository.
