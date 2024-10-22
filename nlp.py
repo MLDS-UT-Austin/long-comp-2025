@@ -369,13 +369,14 @@ class NLPProxy:
 
 if __name__ == "__main__":
     pass
+    event_loop = asyncio.get_event_loop()
     # llm_tokenizer = LlamaTokenizer()
     # tokens = llm_tokenizer.count_tokens("How many US states are there?")
     # print(tokens)
 
     # llm = Llama()
     # prompt = [(LLMRole.USER, "How many US states are there?")]
-    # output = asyncio.run(llm.prompt(prompt, 100))
+    # output = event_loop.run_until_complete(llm.prompt(prompt, 100))
     # print(output)
 
     # bert_tokenizer = BERTTokenizer()
@@ -383,10 +384,10 @@ if __name__ == "__main__":
     # print(tokens)
 
     # bert = BERTTogether()
-    # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
+    # output = event_loop.run_until_complete(bert.get_embeddings("How many US states are there?"))
     # print(type(output))
     # print(output)
 
     # bert = BERTLocal()
-    # output = asyncio.run(bert.get_embeddings("How many US states are there?"))
+    # output = event_loop.run_until_complete(bert.get_embeddings("How many US states are there?"))
     # print(type(output))

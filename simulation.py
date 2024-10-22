@@ -43,7 +43,7 @@ class Simulation:
                 print(f"Agent {name} failed validation: {e}")
                 raise e
 
-    async def run(self, n_games: int = 1):
+    def run(self, n_games: int = 1):
         """Run multiple games in parallel and adds the results to self.games
         Args:
             n_games (int, optional): number of games to run
@@ -69,7 +69,8 @@ class Simulation:
         for game in games:
             game.tqdm_bar = tqdm_bar
 
-        await asyncio.gather(*[game.play() for game in games])
+        event_loop = asyncio.get_event_loop()
+        event_loop.run_until_complete(asyncio.gather(*[game.play_() for game in games]))
 
         for game in games:
             game.tqdm_bar = None

@@ -115,9 +115,11 @@ class Game:
         """Remove a point of view from a player index"""
         return self._r_povs[pov][player]
 
-    async def play(self):
-        """runs the game
-        call using asyncio.run(game.play())"""
+    def play(self):
+        """runs the game"""
+        asyncio.get_event_loop().run_until_complete(self.play_())
+
+    async def play_(self):
         tqdm_bar = (
             self.tqdm_bar
             if self.tqdm_bar

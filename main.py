@@ -24,7 +24,7 @@ if __name__ == "__main__":
     game = Game(
         player_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"], nlp=nlp, n_rounds=20
     )
-    asyncio.run(game.play())
+    game.play()
     print(game)
     print("Scores:", game.get_scores())
     print("Percent Right Votes:", game.get_percent_right_votes())
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # Run multiple games with randomly sampled agents ####################################################
     sim = Simulation(nlp, agent_names=["MLDS 0", "MLDS 0", "MLDS 0", "MLDS 0"])
     sim.validate_agents()
-    asyncio.run(sim.run(n_games=10))
+    sim.run(n_games=10)
     # average scores of all agents
     print("Average Scores:", sim.get_scores().mean(axis=0))
     print("Average Percent Right Votes:", sim.get_percent_right_votes().mean(axis=0))
