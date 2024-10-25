@@ -49,7 +49,6 @@ General,"Is there a lot of talking, or is it quieter here?","You hear some talki
 General,Is there a strong sense of community in this place?,"Yes, people often feel connected here."
 General,"Do you feel safe here, or is it more risky?","It's generally safe, but caution is sometimes needed."
 General,"Is this a place where people learn, work, or relax?","It‚Äôs a mix of learning, work, and relaxation."
-location,question,answer
 Airplane,How often do you get to stand up during your time here?,"Not much, it's restricted."
 Airplane,What kind of noises do you hear throughout your time here?,Mostly engine noise and announcements.
 Airplane,Do you find yourself looking out of windows often?,"Yes, when possible."
