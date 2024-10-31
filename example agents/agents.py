@@ -5,6 +5,8 @@ from typing import Coroutine
 import numpy as np
 from agent_data import *
 
+import pandas as pd
+
 from agent import Agent, register_agent
 from data import Location, redaction_dict
 from nlp import LLMRole, NLPProxy
@@ -669,32 +671,24 @@ class MLDS0(Agent):
         # nonspy data
         self.avg_spy_score = np.zeros(n_players - 1, dtype=float)
 
+        self.question_data = pd.read_csv("example agents/all_question_bank.csv")
+
     async def ask_question(self) -> tuple[int, str]:
+        
+        answerer = np.random.randint(1, self.n_players)
+        
         if self.spy:
-            # Give those who haven't been asked a higher chance of being asked
-            answerer_score = -self.answerer_count + np.random.rand() * 0.1
+            question_list = self.question_data[self.question_data["location"] == "General"]
+            #print(len(question_list))
+            #print(question_list)
+            question = question_list.sample().iloc[0]["question"]
         else:
-            # it's likely that this is the last question we will ask, so question the spy
-            if self.est_n_rounds_remaining < self.n_players:
-                answerer_score = self.avg_spy_score
-            # there will likely be another chance to ask a question, so explore the other players
-            else:
-                answerer_score = (
-                    self.avg_spy_score
-                    + 1 / (self.answerer_count + 1)
-                    + np.random.rand() * 0.1
-                )
-        # set the last questioner to be the least likely to be asked
-        if self.last_questioner != -1:
-            answerer_score[self.last_questioner - 1] = -np.inf
-        answerer = int(np.argmax(answerer_score)) + 1
-        # now, select the question
-        # ensure questions are not repeated when possible
-        if len(self.question_bank) == 0:
-            self.question_bank = QUESTIONS.copy()
-        question = self.question_bank.pop(
-            random.randint(0, len(self.question_bank) - 1)
-        )
+            question_list = self.question_data[self.question_data["location"] == self.location.value]
+            #print(len(question_list))
+            #print(self.location.value)
+            #print(question_list)
+            question = question_list.sample().iloc[0]["question"]
+            
         return answerer, question
 
     async def _answer_question_spy(self, question: str) -> str:
