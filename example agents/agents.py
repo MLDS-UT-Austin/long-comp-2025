@@ -9,9 +9,10 @@ import pandas as pd
 
 from agent import Agent, register_agent
 from data import Location, redaction_dict
-from nlp import LLMRole, NLPProxy
+from nlp import LLMRole, NLPProxy, BERTTogether
 from util import redact
 
+import asyncio
 
 @register_agent("MLDS 0")
 class MLDS0(Agent):
@@ -671,7 +672,20 @@ class MLDS0(Agent):
         # nonspy data
         self.avg_spy_score = np.zeros(n_players - 1, dtype=float)
 
+        #rerun the embeddings of the question/answer bank
+        '''
         self.question_data = pd.read_csv("example agents/all_question_bank.csv")
+        # Create embeddings for all questions
+        self.nlp.bert = BERTTogether()
+        self.question_data["question_embedding"] = self.question_data["question"].apply(
+            lambda x: asyncio.get_event_loop().run_until_complete(self.nlp.bert.get_embeddings(x))
+        )
+        self.question_data["answer_embedding"] = self.question_data["answer"].apply(
+            lambda x: asyncio.get_event_loop().run_until_complete(self.nlp.bert.get_embeddings(x))
+        )
+        self.question_data.to_pickle("question_data_with_embeddings.pkl")
+        '''
+        self.question_data = pd.read_pickle("question_data_with_embeddings.pkl")
 
     async def ask_question(self) -> tuple[int, str]:
         
@@ -692,30 +706,30 @@ class MLDS0(Agent):
         return answerer, question
 
     async def _answer_question_spy(self, question: str) -> str:
-        # fmt: off
-        prompt = [
-            (LLMRole.SYSTEM, f"You are playing a game of spyfall. You are the spy. Answer as vaguely as possible to reduce suspicion."),
-            (LLMRole.USER, "How often do you come here?"),
-            (LLMRole.ASSISTANT, "Not as often as some other locations."),
-            (LLMRole.USER, "What time of day is the busiest here?"),
-            (LLMRole.ASSISTANT, "It's hard to say, it depends on the week."),
-            (LLMRole.USER, question),
-        ]
-        # fmt: on
-        answer = await self.nlp.prompt_llm(prompt, 20, 0.25)
+        
+        # Get embedding for the current question
+        question_embedding = await self.nlp.bert.get_embeddings(question)
+        
+        # Calculate euclidean distances between question embedding and all stored embeddings
+        distances = self.question_data["question_embedding"].apply(
+            lambda x: np.linalg.norm(x - question_embedding)
+        )
+        
+        # Get the answer from the row with smallest distance
+        answer = self.question_data.iloc[distances.argmin()]["answer"]
         return answer
 
     async def _answer_question_nonspy(self, question: str) -> str:
-        assert self.location
-        # fmt: off
-        prompt = [
-            (LLMRole.SYSTEM, f"You are playing a game of spyfall. Answer the question based off the location which is the {self.location.value}. DO NOT REVEAL THE LOCATION IN YOUR ANSWER!"),
-            (LLMRole.USER, "How often do you come here?"),
-            (LLMRole.ASSISTANT, EXAMPLE_ANSWER[self.location]),
-            (LLMRole.USER, question),
-        ]
-        # fmt: on
-        answer = await self.nlp.prompt_llm(prompt, 20, 0.25)
+        # Get embedding for the current question
+        question_embedding = await self.nlp.bert.get_embeddings(question)
+        
+        # Calculate euclidean distances between question embedding and all stored embeddings
+        distances = self.question_data["question_embedding"].apply(
+            lambda x: np.linalg.norm(x - question_embedding)
+        )
+        
+        # Get the answer from the row with smallest distance
+        answer = self.question_data.iloc[distances.argmin()]["answer"]
         return answer
 
     async def answer_question(self, question: str) -> str:
