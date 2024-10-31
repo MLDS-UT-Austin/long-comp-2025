@@ -688,6 +688,12 @@ class MLDS0(Agent):
         '''
         self.question_data = pd.read_pickle("question_data_with_embeddings.pkl")
 
+        #keeping track of location probability
+        self.locs_prob = np.array([0 for loc in Location])
+
+        #keeping track of agent accusation probability
+        self.accusation_prob = np.array([0 for i in range(self.n_players - 1)])
+
     async def ask_question(self) -> tuple[int, str]:
         
         answerer = np.random.randint(1, self.n_players)
