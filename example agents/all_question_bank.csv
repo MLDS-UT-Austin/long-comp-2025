@@ -3,7 +3,7 @@ General,Do you spend a lot of time sitting or standing here?,It depends on the s
 General,Is this place typically noisy or quiet?,"It varies, sometimes it's noisy, other times quiet."
 General,How do people usually dress in this environment?,People dress differently depending on the occasion.
 General,Do you often see large crowds or small groups here?,You can find both crowds and smaller groups here.
-General,Is there a lot of movement or is it more stationary?,There‚Äôs a mix of movement and stationary activity.
+General,Is there a lot of movement or is it more stationary?,There is a mix of movement and stationary activity.
 General,Do you usually interact with strangers here?,"You might talk to strangers, or keep to yourself."
 General,Is the lighting in this place bright or dim?,The lighting can change depending on the time.
 General,Do people tend to stay long or leave quickly?,"Some people stay longer, others come and go quickly."
@@ -21,7 +21,7 @@ General,Is this place used for work or leisure?,"It could be used for either, de
 General,Is there a particular time of day when this place is busiest?,"Yes, there's a peak time, but it's not always the same."
 General,Are there rules people must follow here?,"Yes, there are usually some rules to follow."
 General,Do you need to prepare before coming here?,"It's a good idea to prepare, but not always necessary."
-General,Do you notice any distinct smells in this place?,"You might notice something distinctive, but it‚Äôs subtle."
+General,Do you notice any distinct smells in this place?,"You might notice something distinctive, but it is subtle."
 General,Do people tend to stay alone or in groups?,"Some stay in groups, others are on their own."
 General,"Do people use transportation to get here, or can they walk?","Both options are possible, depending on where you are."
 General,Is this place associated with any particular season?,"It's connected to certain seasons, but not exclusive."
@@ -30,25 +30,25 @@ General,Is it common to see people using their phones here?,"Yes, you often see 
 General,Does this place have a lot of history?,"Yes, there's often a lot of history attached to it."
 General,"Is this a place you visit often, or only occasionally?","It depends, some visit frequently, others only occasionally."
 General,Do people dress more formally or casually here?,"Both are acceptable, depending on the situation."
-General,Do you need any special equipment or clothing to be here?,"It‚Äôs possible, but it depends on what you‚Äôre doing."
+General,Do you need any special equipment or clothing to be here?,"It is possible, but it depends on what you are doing."
 General,Are there specific sounds that are common in this place?,"Yes, you can hear some distinctive sounds."
 General,"Is it important to be quiet, or is it okay to talk?","You may need to be quiet, or it might not matter."
 General,"Are there seats available here, or do you stand?","There are usually places to sit, but not always."
 General,Is this place popular with tourists or locals?,"Both groups visit, but one may dominate at times."
 General,Is this place large or small?,"It can feel large, but parts of it are small."
-General,Do you need to pay to enter this place?,"It‚Äôs possible, but not always required."
+General,Do you need to pay to enter this place?,"It is possible, but not always required."
 General,"Do you see children here often, or mostly adults?","Both are common, depending on the day."
-General,"Do people tend to stay focused, or do they relax here?","People usually stay focused, but there‚Äôs room for relaxation."
+General,"Do people tend to stay focused, or do they relax here?","People usually stay focused, but there is room for relaxation."
 General,Do you have to plan your visit here in advance?,"Planning helps, but spontaneous visits happen too."
-General,Are there a lot of signs or instructions in this environment?,"Yes, there‚Äôs usually guidance or signage."
-General,Is this place very colorful or more neutral?,"It can be colorful, but sometimes it‚Äôs more muted."
+General,Are there a lot of signs or instructions in this environment?,"Yes, there is usually guidance or signage."
+General,Is this place very colorful or more neutral?,"It can be colorful, but sometimes it is more muted."
 General,Do people use specific tools or objects while they're here?,"Some do, but not everyone uses them."
-General,Does this place have a specific purpose or is it more versatile?,"There‚Äôs a primary purpose, but it can serve others too."
-General,Do people spend time here alone or with others?,"It‚Äôs common to see both, depending on the situation."
-General,"Is there a lot of talking, or is it quieter here?","You hear some talking, but it‚Äôs not constant."
+General,Does this place have a specific purpose or is it more versatile?,"There is a primary purpose, but it can serve others too."
+General,Do people spend time here alone or with others?,"It is common to see both, depending on the situation."
+General,"Is there a lot of talking, or is it quieter here?","You hear some talking, but it is not constant."
 General,Is there a strong sense of community in this place?,"Yes, people often feel connected here."
 General,"Do you feel safe here, or is it more risky?","It's generally safe, but caution is sometimes needed."
-General,"Is this a place where people learn, work, or relax?","It‚Äôs a mix of learning, work, and relaxation."
+General,"Is this a place where people learn, work, or relax?","It is a mix of learning, work, and relaxation."
 Airplane,How often do you get to stand up during your time here?,"Not much, it's restricted."
 Airplane,What kind of noises do you hear throughout your time here?,Mostly engine noise and announcements.
 Airplane,Do you find yourself looking out of windows often?,"Yes, when possible."
@@ -58,7 +58,7 @@ Bank,Do you see a lot of security measures around you?,"Yes, security is a prior
 Bank,What are people typically holding when they come here?,They often have paperwork or items to deposit.
 Bank,Do you see people standing in lines often here?,"Yes, lines are pretty common here."
 Bank,Is there a lot of counting involved at this place?,"Yes, a lot of numbers being handled."
-Bank,Do you handle paperwork while here?,"Yes, it‚Äôs a standard part of the process."
+Bank,Do you handle paperwork while here?,"Yes, it is a standard part of the process."
 Beach,Do you notice people dressing very casually here?,"Yes, people tend to dress comfortably."
 Beach,Is it common to see large gatherings of people here?,"Yes, gatherings and socializing are common."
 Beach,How is the weather typically when you're in this place?,It's usually sunny and warm.
@@ -76,18 +76,18 @@ Casino,Do people tend to come here for entertainment?,"Yes, it's a popular place
 Casino,Do you see people taking risks when you're here?,"Yes, many people gamble or make bets."
 Cathedral,Do people tend to speak softly in this place?,"Yes, people are generally quiet here."
 Cathedral,Is it common to see people sitting for long periods here?,"Yes, sitting for extended periods is common."
-Cathedral,Is this place very decorative or plain?,It‚Äôs often very ornate and grand.
+Cathedral,Is this place very decorative or plain?,It is often very ornate and grand.
 Cathedral,Do people often look upwards in this environment?,"Yes, people often look upwards towards the ceiling."
 Cathedral,Do you hear music often in this setting?,"Yes, music is a common part of the experience."
-Circus Tent,Is the environment here more for entertainment or work?,"It‚Äôs mostly for entertainment, but people do work here too."
-Circus Tent,Do you see a lot of movement in this place?,"Yes, there‚Äôs a lot of activity and movement."
+Circus Tent,Is the environment here more for entertainment or work?,"It is mostly for entertainment, but people do work here too."
+Circus Tent,Do you see a lot of movement in this place?,"Yes, there is a lot of activity and movement."
 Circus Tent,What kind of noises are common in this environment?,"Loud noises like cheering, music, and sometimes animals."
 Circus Tent,Is the attire here formal or casual?,The attire is more casual or theatrical.
 Circus Tent,Do people tend to come here alone or with others?,People usually come in groups or with family.
 Corporate Party,Do people come here to relax or network?,"It's a mix, some are here to relax while others network."
 Corporate Party,Is there a lot of small talk in this environment?,"Yes, small talk is quite common in this setting."
 Corporate Party,What kind of refreshments are typically available?,"Usually light refreshments, appetizers, and drinks."
-Corporate Party,Is the lighting here bright or more dim?,"It‚Äôs more dim, giving it a relaxed or social atmosphere."
+Corporate Party,Is the lighting here bright or more dim?,"It is more dim, giving it a relaxed or social atmosphere."
 Corporate Party,Do people know each other before coming here?,"Some people do, but not everyone knows each other."
 Crusader Army,Is there a sense of urgency in this place?,"Yes, there's a strong sense of urgency here."
 Crusader Army,Do you see a lot of physical activity happening here?,"Yes, physical activity is constant in this environment."
@@ -96,9 +96,9 @@ Crusader Army,Is this place associated with a specific historical period?,"Yes, 
 Crusader Army,Do people work together or individually here?,"People work closely together, often in teams."
 Day Spa,Is this a place people come to feel better physically or mentally?,"Both, people come to feel better mentally and physically."
 Day Spa,Are there a lot of special tools or equipment used here?,"Yes, special tools are an essential part of the experience."
-Day Spa,Is the atmosphere here calm or hectic?,It‚Äôs usually very calm and relaxing.
+Day Spa,Is the atmosphere here calm or hectic?,It is usually very calm and relaxing.
 Day Spa,Do people come here for a short or long visit?,People typically come for a longer stay to fully enjoy it.
-Day Spa,Is there a specific scent or fragrance you associate with this place?,"Yes, there‚Äôs often a relaxing fragrance in the air."
+Day Spa,Is there a specific scent or fragrance you associate with this place?,"Yes, there is often a relaxing fragrance in the air."
 Embassy,Is this place associated with international relations?,"Yes, it deals with matters between countries."
 Embassy,Are there security measures in place here?,"Yes, security is a key part of this environment."
 Embassy,Do people need appointments to come here?,"Yes, most visitors need appointments or clearance."
@@ -126,61 +126,61 @@ Restaurant,Do people spend a lot of time here or just a little?,"It depends, but
 Restaurant,Do you interact with the staff often here?,"Yes, interacting with staff is common."
 School,Is this place usually quiet or noisy?,"It's usually noisy, but some areas are quieter."
 School,Do you often see people of different ages here?,"Yes, you see people of all ages, mostly younger."
-School,Is this a place for learning or for something else?,It‚Äôs mostly for learning.
+School,Is this a place for learning or for something else?,It is mostly for learning.
 School,Is there a schedule people follow here?,"Yes, a strict schedule is followed."
 School,Do people bring their own materials or use what's provided?,"People bring their own materials, but some are provided."
 Service Station,Is this a place people visit often or only when needed?,People come when they need something specific.
 Service Station,Is there a lot of equipment or tools here?,"Yes, tools and equipment are essential here."
 Service Station,Do people stay here long or is it a quick stop?,"It's usually a quick stop, not a long stay."
 Service Station,Do people work with their hands in this environment?,"Yes, it's very hands-on work here."
-Service Station,"Is this place indoors, outdoors, or a mix of both?","It‚Äôs a mix, partly indoors and partly outdoors."
-Space Station,Is it easy to move around in this environment?,"It‚Äôs not easy, movement can be challenging."
+Service Station,"Is this place indoors, outdoors, or a mix of both?","It is a mix, partly indoors and partly outdoors."
+Space Station,Is it easy to move around in this environment?,"It is not easy, movement can be challenging."
 Space Station,Is there a lot of technology being used here?,"Yes, advanced technology is used constantly."
 Space Station,Is this place associated with scientific research?,"Yes, research is a major focus here."
 Space Station,Do you interact with the same people frequently here?,"Yes, you interact with the same group for long periods."
 Space Station,Is it common to spend a lot of time looking outside?,"Yes, looking outside is a unique part of being here."
 Submarine,Is the space here confined or open?,The space is very confined and tight.
 Submarine,Do you interact with a lot of people or a few?,You interact with only a small group of people.
-Submarine,Is the environment here related to travel or exploration?,It‚Äôs more about exploration and operations.
-Submarine,Is it noisy or quiet in this environment?,"It can be noisy, but sometimes it‚Äôs quieter."
+Submarine,Is the environment here related to travel or exploration?,It is more about exploration and operations.
+Submarine,Is it noisy or quiet in this environment?,"It can be noisy, but sometimes it is quieter."
 Submarine,Do people stay in this place for a long period or short?,People stay here for extended periods of time.
 Supermarket,Do people come here regularly or just occasionally?,Many people come here regularly for supplies.
-Supermarket,Is it common to see a lot of movement here?,"Yes, it‚Äôs usually very busy with a lot of movement."
+Supermarket,Is it common to see a lot of movement here?,"Yes, it is usually very busy with a lot of movement."
 Supermarket,Do you interact with a lot of different people here?,"Yes, you encounter a variety of people here."
 Supermarket,Is there a lot of organization in this environment?,"Yes, organization is key in this environment."
 Supermarket,Do people bring things with them or leave with things?,People usually leave with what they need.
-University,Is this place for studying or something else?,It‚Äôs mainly for studying and education.
+University,Is this place for studying or something else?,It is mainly for studying and education.
 University,Do you see people of different ages in this environment?,"Yes, you see people of all ages, especially students."
-University,Is there a lot of talking or is it more quiet?,There‚Äôs usually a lot of talking and activity.
+University,Is there a lot of talking or is it more quiet?,There is usually a lot of talking and activity.
 University,Do people stay in one place or move around a lot here?,People are constantly moving from place to place.
-University,Is the atmosphere here relaxed or more serious?,"It‚Äôs a mix, but can be more serious during certain times."
+University,Is the atmosphere here relaxed or more serious?,"It is a mix, but can be more serious during certain times."
 Military Base,Is security a major aspect of this place?,"Yes, security is essential here."
 Military Base,Do you see people working in uniform here?,"Yes, uniforms are common in this environment."
 Military Base,Is there a sense of discipline in the environment?,"Yes, discipline is highly valued here."
 Military Base,Do people spend long periods away from family here?,"Yes, people often stay here for long stretches."
 Military Base,Is this place associated with specific missions?,"Yes, specific missions are associated with this place."
 Movie Studio,Do you see a lot of cameras and equipment around?,"Yes, there are cameras and various gear everywhere."
-Movie Studio,Is this place usually quiet or full of action?,Itâ€™s usually very action-packed.
+Movie Studio,Is this place usually quiet or full of action?,It's usually very action-packed.
 Movie Studio,Do people wear a lot of costumes here?,"Yes, costumes are common depending on the work."
-Movie Studio,Is the work here creative or more technical?,Itâ€™s a mix of creativity and technical expertise.
+Movie Studio,Is the work here creative or more technical?,It's a mix of creativity and technical expertise.
 Movie Studio,Are there specific schedules or routines followed here?,"Yes, routines and schedules are crucial here."
-Ocean Liner,Is this place associated with travel or relaxation?,Itâ€™s mostly for travel and relaxation.
-Ocean Liner,Are there many different activities available here?,"Yes, thereâ€™s a variety of activities available."
+Ocean Liner,Is this place associated with travel or relaxation?,It's mostly for travel and relaxation.
+Ocean Liner,Are there many different activities available here?,"Yes, there's a variety of activities available."
 Ocean Liner,Do you meet people from different backgrounds?,"Yes, people come from all over."
-Ocean Liner,Is there a lot of water surrounding this environment?,"Yes, itâ€™s surrounded by water on all sides."
+Ocean Liner,Is there a lot of water surrounding this environment?,"Yes, it's surrounded by water on all sides."
 Ocean Liner,Do people stay here for an extended period?,"Yes, people usually stay on board for a while."
-Passenger Train,Is this place constantly moving or stationary?,Itâ€™s moving almost all the time.
+Passenger Train,Is this place constantly moving or stationary?,It's moving almost all the time.
 Passenger Train,Do you see people coming and going frequently?,"Yes, people are constantly boarding and exiting."
 Passenger Train,Are there specific stops or destinations involved?,"Yes, there are planned stops along the way."
 Passenger Train,Do people spend a lot of time looking out of windows?,"Yes, many passengers enjoy the view."
 Passenger Train,Is seating arranged closely together in this place?,"Yes, seating is quite compact here."
-Pirate Ship,Is this place associated with a historical period?,"Yes, itâ€™s closely tied to a certain era."
-Pirate Ship,Do you see a lot of nautical equipment here?,"Yes, thereâ€™s a lot of sailing equipment on board."
+Pirate Ship,Is this place associated with a historical period?,"Yes, it's closely tied to a certain era."
+Pirate Ship,Do you see a lot of nautical equipment here?,"Yes, there's a lot of sailing equipment on board."
 Pirate Ship,Is there a sense of adventure in this environment?,"Yes, adventure is a big part of life here."
 Pirate Ship,Do people wear unique or themed attire here?,"Yes, the attire is themed and unique."
 Pirate Ship,Is it common to experience rough conditions here?,"Yes, rough conditions are a regular challenge."
-Polar Station,Is this environment isolated or heavily populated?,Itâ€™s very isolated with few people.
-Polar Station,Is temperature a big factor here?,"Yes, itâ€™s extremely cold here."
+Polar Station,Is this environment isolated or heavily populated?,It's very isolated with few people.
+Polar Station,Is temperature a big factor here?,"Yes, it's extremely cold here."
 Polar Station,Do people come here for research or relaxation?,Mostly for scientific research.
 Polar Station,Is this place indoors or outdoors?,"Mostly indoors, but some outdoor activities happen."
 Polar Station,Do you rely on special equipment to be here?,"Yes, special equipment is essential for survival."
