@@ -672,16 +672,17 @@ class MLDS0(Agent):
         # nonspy data
         self.avg_spy_score = np.zeros(n_players - 1, dtype=float)
 
-        #rerun the embeddings of the question/answer bank
+        self.bert = BERTTogether()
+        #rerun the embeddings of the question/answer ban
         '''
         self.question_data = pd.read_csv("example agents/all_question_bank.csv")
         # Create embeddings for all questions
-        self.nlp.bert = BERTTogether()
+        
         self.question_data["question_embedding"] = self.question_data["question"].apply(
-            lambda x: asyncio.get_event_loop().run_until_complete(self.nlp.bert.get_embeddings(x))
+            lambda x: asyncio.get_event_loop().run_until_complete(self.bert.get_embeddings(x))
         )
         self.question_data["answer_embedding"] = self.question_data["answer"].apply(
-            lambda x: asyncio.get_event_loop().run_until_complete(self.nlp.bert.get_embeddings(x))
+            lambda x: asyncio.get_event_loop().run_until_complete(self.bert.get_embeddings(x))
         )
         self.question_data.to_pickle("question_data_with_embeddings.pkl")
         '''
@@ -708,7 +709,7 @@ class MLDS0(Agent):
     async def _answer_question_spy(self, question: str) -> str:
         
         # Get embedding for the current question
-        question_embedding = await self.nlp.bert.get_embeddings(question)
+        question_embedding = await self.bert.get_embeddings(question)
         
         # Calculate euclidean distances between question embedding and all stored embeddings
         distances = self.question_data["question_embedding"].apply(
@@ -721,7 +722,7 @@ class MLDS0(Agent):
 
     async def _answer_question_nonspy(self, question: str) -> str:
         # Get embedding for the current question
-        question_embedding = await self.nlp.bert.get_embeddings(question)
+        question_embedding = await self.bert.get_embeddings(question)
         
         # Calculate euclidean distances between question embedding and all stored embeddings
         distances = self.question_data["question_embedding"].apply(
