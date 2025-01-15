@@ -638,7 +638,7 @@ class MLDS2(Agent):
             self.most_voted_player = c.most_common(1)[0][0]  # type: ignore
 
 
-@register_agent("NLP_Meeting")
+@register_agent("NLP Meeting")
 class NLPMeeting(Agent):
     """Agent used for demo for NLP Meeting"""
 
