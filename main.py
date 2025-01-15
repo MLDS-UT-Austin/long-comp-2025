@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # for you to run an example agent
     import_agents_from_files("example agents/agents.py")
     # for us to run your agents
-    # import_agents_from_files("github classroom submissions/**/submission.py")
+    import_agents_from_files("longcomp2025-submissions/*/submission.py")
 
     # Run a single game ####################################################
     # Feel free to edit the players, duplicate players are allowed
