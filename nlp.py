@@ -59,13 +59,15 @@ class LLM(ABC):
 
 class EmbeddingTokenizer(ABC):
     @abstractmethod
-    def count_tokens(self, text: str) -> int:
+    def count_tokens(self, text: str | list[str]) -> int:
         pass
 
 
 class Embedding(ABC):
     @abstractmethod
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         pass
 
 
@@ -139,9 +141,10 @@ class BERTTokenizer(EmbeddingTokenizer):
             "bert-base-uncased", clean_up_tokenization_spaces=True
         )
 
-    def count_tokens(self, text: str) -> int:
-        tokens = self.tokenizer(text).encodings[0].tokens
-        return len(tokens)
+    def count_tokens(self, text: str | list[str]) -> int:
+        text = [text] if isinstance(text, str) else text
+        token_list = [self.tokenizer(t).encodings[0].tokens for t in text]
+        return sum(len(tokens) for tokens in token_list)
 
 
 class BERTTogether(Embedding):
@@ -151,14 +154,20 @@ class BERTTogether(Embedding):
             raise client
 
     @rate_limit(requests_per_second=50)
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         """returns a 768-dimensional embedding"""
         response = await client.embeddings.create(
             model="togethercomputer/m2-bert-80M-2k-retrieval",
             input=text,
         )
-        embedding = np.array(response.data[0].embedding)
-        return embedding
+        embeddings = [
+            np.array(response.data[i].embedding) for i in range(len(response.data))
+        ]
+        if isinstance(text, str):
+            return embeddings[0]
+        return embeddings
 
 
 class BERTLocal(Embedding):
@@ -209,21 +218,33 @@ class BERTLocal(Embedding):
             for future, embedding in zip(futures, embeddings):
                 future.set_result(embedding)
 
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         """This adds the text to the queue which will be processed in the model_loop
         the model_loop will then set the future with the embedding"""
         if not hasattr(self, "model_loop_task") or self.model_loop_task.cancelled():  # type: ignore
             self.queue: asyncio.Queue[tuple[str, asyncio.Future]] = asyncio.Queue()
             self.model_loop_task = asyncio.create_task(self.model_loop())
-        future = asyncio.get_event_loop().create_future()
-        self.queue.put_nowait((text, future))
-        embedding = await future
-        return embedding
+        text_list = [text] if isinstance(text, str) else text
+        futures = []
+        for t in text_list:
+            future = asyncio.get_event_loop().create_future()
+            self.queue.put_nowait((t, future))
+            futures.append(future)
+        embeddings = await asyncio.gather(*futures)
+        if isinstance(text, str):
+            return embeddings[0]
+        return embeddings
 
 
 class DummyEmbedding(Embedding):
-    async def get_embeddings(self, text: str) -> np.ndarray:
-        return np.zeros(768)
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
+        if isinstance(text, str):
+            return np.zeros(768)
+        return [np.zeros(768) for _ in text]
 
 
 @dataclass
@@ -243,13 +264,15 @@ class NLP:
     ) -> str:
         return await self.llm.prompt(prompt, max_output_tokens, temperature)
 
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         return await self.embedding.get_embeddings(text)
 
     def count_llm_tokens(self, text_or_prompt: str | list[tuple[LLMRole, str]]) -> int:
         return self.llm_tokenizer.count_tokens(text_or_prompt)
 
-    def count_embedding_tokens(self, text: str) -> int:
+    def count_embedding_tokens(self, text: str | list[str]) -> int:
         return self.embedding_tokenizer.count_tokens(text)
 
 
@@ -286,17 +309,21 @@ class TokenCounterWrapper:
             self.remaining_tokens -= self.nlp.count_llm_tokens(output)
         return output
 
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         self.remaining_tokens -= math.ceil(self.nlp.count_embedding_tokens(text) / 10)
         if self.remaining_tokens < 0:
-            return np.zeros(768)
+            if isinstance(text, str):
+                return np.zeros(768)
+            return [np.zeros(768) for _ in text]
 
         return await self.nlp.get_embeddings(text)
 
     def count_llm_tokens(self, text_or_prompt: str | list[tuple[LLMRole, str]]) -> int:
         return self.nlp.count_llm_tokens(text_or_prompt)
 
-    def count_embedding_tokens(self, text: str) -> int:
+    def count_embedding_tokens(self, text: str | list[str]) -> int:
         return self.nlp.count_embedding_tokens(text)
 
 
@@ -332,7 +359,9 @@ class NLPProxy:
             prompt, max_output_tokens, temperature
         )
 
-    async def get_embeddings(self, text: str) -> np.ndarray:
+    async def get_embeddings(
+        self, text: str | list[str]
+    ) -> np.ndarray | list[np.ndarray]:
         """Gets a 768-dimensional embedding for the given text
 
         Args:
@@ -355,7 +384,7 @@ class NLPProxy:
         """
         return self.__token_counter.count_llm_tokens(text_or_prompt)
 
-    def count_embedding_tokens(self, text: str) -> int:
+    def count_embedding_tokens(self, text: str | list[str]) -> int:
         """Equivalent to count_llm_tokens but for the embedding model"""
         return self.__token_counter.count_embedding_tokens(text)
 
@@ -383,11 +412,40 @@ if __name__ == "__main__":
     # tokens = bert_tokenizer.count_tokens("How many US states are there?")
     # print(tokens)
 
+    # tokens = bert_tokenizer.count_tokens(["How many", "US states are there?"])
+    # print(tokens)
+
     # bert = BERTTogether()
     # output = event_loop.run_until_complete(bert.get_embeddings("How many US states are there?"))
     # print(type(output))
-    # print(output)
+    # print(len(output))
+
+    # output = event_loop.run_until_complete(bert.get_embeddings(["How many", "US states are there?"]))
+    # print(type(output))
+    # print(len(output))
 
     # bert = BERTLocal()
-    # output = event_loop.run_until_complete(bert.get_embeddings("How many US states are there?"))
+    # output = event_loop.run_until_complete(
+    #     bert.get_embeddings("How many US states are there?")
+    # )
     # print(type(output))
+    # print(len(output))
+
+    # output = event_loop.run_until_complete(
+    #     bert.get_embeddings(["How many", "US states are there?"])
+    # )
+    # print(type(output))
+    # print(len(output))
+
+    # bert = DummyEmbedding()
+    # output = event_loop.run_until_complete(
+    #     bert.get_embeddings("How many US states are there?")
+    # )
+    # print(type(output))
+    # print(len(output))
+
+    # output = event_loop.run_until_complete(
+    #     bert.get_embeddings(["How many", "US states are there?"])
+    # )
+    # print(type(output))
+    # print(len(output))
