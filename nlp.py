@@ -275,6 +275,9 @@ class NLP:
     def count_embedding_tokens(self, text: str | list[str]) -> int:
         return self.embedding_tokenizer.count_tokens(text)
 
+    # disable pickling
+    def __getstate__(self):
+        return {}
 
 @dataclass
 class TokenCounterWrapper:
