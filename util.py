@@ -75,22 +75,28 @@ def relative_path_decorator(cls):
     """A class decorator that changes the working directory to the directory where the class is defined
     This is needed for submissions that load from files"""
 
-    class_dir = os.path.dirname(os.path.abspath(cls.__module__))
+    class_dir = os.path.dirname(sys.modules[cls.__module__].__file__)
 
     # Wrap all methods
     for attr_name, attr_value in cls.__dict__.items():
         if callable(attr_value):
             @functools.wraps(attr_value)
-            def wrapped_method(self, *args, original_method=attr_value, **kwargs):
+            def wrapped_method(*args, original_method=attr_value, **kwargs):
                 original_dir = os.getcwd()
                 try:
                     # change working dir
                     os.chdir(class_dir)
-                    result = original_method(self, *args, **kwargs)
+                    result = original_method(*args, **kwargs)
                     return result
                 finally:
                     # restore working dir
                     os.chdir(original_dir)
+
+            # Handle static and class methods
+            if isinstance(attr_value, staticmethod):
+                wrapped_method = staticmethod(wrapped_method)
+            elif isinstance(attr_value, classmethod):
+                wrapped_method = classmethod(wrapped_method)
 
             # Update method
             setattr(cls, attr_name, wrapped_method)
