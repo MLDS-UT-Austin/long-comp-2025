@@ -132,9 +132,10 @@ class Game:
             tqdm_bar.update(1)
             self.rounds.append(round)
             if self.game_state != GameState.RUNNING:
-                return
+                break
+        else:
+            self.game_state = GameState.NO_ONE_INDICTED
         tqdm_bar.update(self.n_rounds - len(self.rounds))
-        self.game_state = GameState.NO_ONE_INDICTED
 
     def get_scores(self) -> pd.Series:
         """Gets the scores of all players as a pandas series
