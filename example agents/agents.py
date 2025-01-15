@@ -1,18 +1,15 @@
 import random
-from collections import Counter, defaultdict
-from typing import Coroutine
+from collections import Counter
 
 import numpy as np
-from agent_data import *
-
 import pandas as pd
+from agent_data import *
 
 from agent import Agent, register_agent
 from data import Location, redaction_dict
-from nlp import LLMRole, NLPProxy, BERTTogether
+from nlp import LLMRole, NLPProxy
 from util import redact
 
-import asyncio
 
 @register_agent("MLDS 0")
 class MLDS0(Agent):
@@ -224,7 +221,7 @@ class MLDS0(Agent):
 
 
 @register_agent("MLDS 1")
-class MLDS0(Agent):
+class MLDS1(Agent):
     """Same as MLDS 0, but more agressive in accusing players of being the spy."""
 
     def __init__(
@@ -433,7 +430,7 @@ class MLDS0(Agent):
 
 
 @register_agent("MLDS 2")
-class MLDS0(Agent):
+class MLDS2(Agent):
     """Same as MLDS 0, but less agressive in accusing players of being the spy."""
 
     def __init__(
@@ -642,7 +639,7 @@ class MLDS0(Agent):
 
 
 @register_agent("NLP_Meeting")
-class MLDS0(Agent):
+class NLPMeeting(Agent):
     """Agent used for demo for NLP Meeting"""
 
     def __init__(
@@ -672,9 +669,8 @@ class MLDS0(Agent):
         # nonspy data
         self.avg_spy_score = np.zeros(n_players - 1, dtype=float)
 
+        """ rerun the embeddings of the question/answer ban
         self.bert = BERTTogether()
-        #rerun the embeddings of the question/answer ban
-        '''
         self.question_data = pd.read_csv("example agents/all_question_bank.csv")
         # Create embeddings for all questions
         
@@ -685,56 +681,58 @@ class MLDS0(Agent):
             lambda x: asyncio.get_event_loop().run_until_complete(self.bert.get_embeddings(x))
         )
         self.question_data.to_pickle("question_data_with_embeddings.pkl")
-        '''
+        """
         self.question_data = pd.read_pickle("question_data_with_embeddings.pkl")
 
-        #keeping track of location probability
+        # keeping track of location probability
         self.locs_prob = np.array([0 for loc in Location])
 
-        #keeping track of agent accusation probability
+        # keeping track of agent accusation probability
         self.accusation_prob = np.array([0 for i in range(self.n_players - 1)])
 
     async def ask_question(self) -> tuple[int, str]:
-        
-        answerer = np.random.randint(1, self.n_players)
-        
+        # select the answerer, excluding the last questioner
+        players = list(range(1, self.n_players))
+        if self.last_questioner != -1:
+            players.remove(self.last_questioner)
+        answerer = random.choice(players)
+
         if self.spy:
-            question_list = self.question_data[self.question_data["location"] == "General"]
-            #print(len(question_list))
-            #print(question_list)
+            question_list = self.question_data[
+                self.question_data["location"] == "General"
+            ]
             question = question_list.sample().iloc[0]["question"]
         else:
-            question_list = self.question_data[self.question_data["location"] == self.location.value]
-            #print(len(question_list))
-            #print(self.location.value)
-            #print(question_list)
+            question_list = self.question_data[
+                self.question_data["location"] == self.location.value
+            ]
             question = question_list.sample().iloc[0]["question"]
-            
+
         return answerer, question
 
     async def _answer_question_spy(self, question: str) -> str:
-        
+
         # Get embedding for the current question
-        question_embedding = await self.bert.get_embeddings(question)
-        
+        question_embedding = await self.nlp.get_embeddings(question)
+
         # Calculate euclidean distances between question embedding and all stored embeddings
         distances = self.question_data["question_embedding"].apply(
             lambda x: np.linalg.norm(x - question_embedding)
         )
-        
+
         # Get the answer from the row with smallest distance
         answer = self.question_data.iloc[distances.argmin()]["answer"]
         return answer
 
     async def _answer_question_nonspy(self, question: str) -> str:
         # Get embedding for the current question
-        question_embedding = await self.bert.get_embeddings(question)
-        
+        question_embedding = await self.nlp.get_embeddings(question)
+
         # Calculate euclidean distances between question embedding and all stored embeddings
         distances = self.question_data["question_embedding"].apply(
             lambda x: np.linalg.norm(x - question_embedding)
         )
-        
+
         # Get the answer from the row with smallest distance
         answer = self.question_data.iloc[distances.argmin()]["answer"]
         return answer
@@ -760,7 +758,7 @@ class MLDS0(Agent):
             return float(float_str)
         except:
             return None
-        
+
     # Compare embeddings for responses with embeddings for locations
     async def _analyze_response_spy(
         self,
