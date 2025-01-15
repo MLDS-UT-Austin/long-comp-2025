@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import importlib
 import os
 import re
@@ -68,6 +69,33 @@ def import_agents_from_files(glob_pattern: str) -> None:
         sys.path.insert(1, dirname(file))
         spec.loader.exec_module(module)
         sys.path = orig_path
+
+
+def relative_path_decorator(cls):
+    """A class decorator that changes the working directory to the directory where the class is defined
+    This is needed for submissions that load from files"""
+
+    class_dir = os.path.dirname(os.path.abspath(cls.__module__))
+
+    # Wrap all methods
+    for attr_name, attr_value in cls.__dict__.items():
+        if callable(attr_value):
+            @functools.wraps(attr_value)
+            def wrapped_method(self, *args, original_method=attr_value, **kwargs):
+                original_dir = os.getcwd()
+                try:
+                    # change working dir
+                    os.chdir(class_dir)
+                    result = original_method(self, *args, **kwargs)
+                    return result
+                finally:
+                    # restore working dir
+                    os.chdir(original_dir)
+
+            # Update method
+            setattr(cls, attr_name, wrapped_method)
+
+    return cls
 
 
 def rate_limit(requests_per_second: int):

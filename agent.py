@@ -4,7 +4,7 @@ from typing import final
 
 from data import Location, redaction_dict
 from nlp import LLMRole, NLPProxy
-from util import redact
+from util import redact, relative_path_decorator
 
 AGENT_REGISTRY = {}
 
@@ -15,6 +15,8 @@ def register_agent(team_name: str):
     def decorator(cls):
         assert issubclass(cls, Agent)
         assert team_name not in AGENT_REGISTRY
+        # this changes all methods in the class to use paths relative to the class file
+        cls = relative_path_decorator(cls)
         AGENT_REGISTRY[team_name] = cls
         return cls
 
