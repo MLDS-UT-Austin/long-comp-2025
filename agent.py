@@ -134,7 +134,7 @@ class Agent(ABC):
                 accusation = event_loop.run_until_complete(agent.accuse_player())
                 event_loop.run_until_complete(agent.analyze_voting([0, 1, None, None]))
                 assert isinstance(answerer, int)
-                assert 1 <= answerer < 5
+                assert 1 <= answerer < n_players
                 assert isinstance(question, str)
                 assert isinstance(answer0, str)
                 assert isinstance(answer1, str)
