@@ -254,7 +254,7 @@ class Round:
 
         # if the questioner selected the last questioner, select a random player
         if game.last_questioner != -1 and answerer == game.last_questioner:
-            print("questioner selected last questioner, selecting random player")
+            print(f"questioner ({type(game.players[questioner])}) selected last questioner, selecting random player")
             answerer = random.choice(
                 [
                     i
