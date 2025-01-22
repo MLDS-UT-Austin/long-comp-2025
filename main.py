@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # for you to run an example agent
     import_agents_from_files("example agents/agents.py")
     # for us to run your agents
-    import_agents_from_files("longcomp2025-submissions/*/submission.py")
+    import_agents_from_files("submissions/*/submission.py")
 
     # Run a single game ####################################################
     # Feel free to edit the players, duplicate players are allowed
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # game.save_audio("game.wav")
 
     # Run multiple games with randomly sampled agents ####################################################
-    sim = Simulation(nlp, agent_names=["Team Name Here", "MLDS 0", "MLDS 1", "MLDS 2"])
+    sim = Simulation(nlp, agent_names=["MEH", "Meters", "MLDS 0", "MLDS 1", "MLDS 2", "NLP Meeting"], team_size=6)
     sim.validate_agents()
     sim.run(n_games=10)
     # average scores of all agents
