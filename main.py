@@ -32,10 +32,7 @@ if __name__ == "__main__":
     print("Percent Right Votes:", game.get_percent_right_votes())
     print("Game Duration:", len(game.rounds))
 
-    conv = game.get_conversation()
-    # convert 0-indexed player to 1-indexed player
-    conv["player"] += 1
-    conv.to_csv("conversation.csv", index=False)
+    conv = game.save_conversation("conversation.csv")
 
     # game.pregenerate_audio()
     # game.render()

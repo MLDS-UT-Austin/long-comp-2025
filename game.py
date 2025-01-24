@@ -188,7 +188,18 @@ class Game:
         """
         conv_list = list(chain(*[round.get_conversation() for round in self.rounds]))
         df = pd.DataFrame(conv_list, columns=["player", "message"])
+        df["player_name"] = df["player"].apply(lambda x: self.player_names[x])
+        # set column order to player, player_name, message
+        df = df[["player", "player_name", "message"]]
         return df
+    
+    def save_conversation(self, path: str):
+        """Saves the conversation to a path
+        Converts to 1-indexed player ids"""
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        df = self.get_conversation()
+        df["player"] += 1
+        df.to_csv(path, index=False)
 
     def pregenerate_audio(self):
         """pre-generates audio for the game"""
