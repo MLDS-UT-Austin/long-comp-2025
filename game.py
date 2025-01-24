@@ -13,6 +13,7 @@ from agent import AGENT_REGISTRY, Agent
 from data import *
 from nlp import *
 from util import *
+from visualizations import Visualization
 
 
 # Used to describe how the game ended or if it is ongoing
@@ -198,14 +199,19 @@ class Game:
 
     def render(self):
         """Visualizes the game and plays the audio"""
-        # init pygame
+        # setup audio
         sr = self.rounds[0].audio[0][2]
         pygame.mixer.pre_init(frequency=sr, channels=1, allowedchanges=0)
         pygame.init()
 
+        # init visualization
+        vis = Visualization(self.player_names, self.spy)
+
         for round in self.rounds:
-            round.render()
+            round.render(vis)
+            
         # close pygame
+        del vis
 
     def save_audio(self, path: str):
         """saves the audio to a path"""
@@ -388,12 +394,14 @@ class Round:
             audio, sr = text_to_speech(message, voice, ps)
             self.audio.append((player, audio, sr))
 
-    def render(self):
+    def render(self, vis: Visualization):
+        conv = self.get_conversation()
         # render the round
         self.audio, "need to pregenerate audio"
         # game = self.game
         # print(game.window)
-        for voice in self.audio:
+        for voice, (player_id, msg) in zip(self.audio, conv):
+            vis.render_text(player_id, msg)
             _, audio, _ = voice
             sound = pygame.sndarray.make_sound(audio)
             sound.play()
