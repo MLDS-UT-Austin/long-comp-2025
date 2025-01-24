@@ -2,6 +2,7 @@ import asyncio
 import functools
 import importlib
 import os
+import random
 import re
 import sys
 import time
@@ -50,6 +51,71 @@ def count_votes(votes: list[int | None], n_players: int) -> int | None:
             return top2[0][0]
         else:
             return None  # tie
+
+
+def sample_agents(
+    agent_names: list[str],
+    team_size: int,
+    n_games: int,
+    verbose: bool = False,
+    max_same_agent: int = 2,
+) -> list[tuple[list[str], int]]:
+    """Sample agents for a game, ensuring fairness for both game count and spy count
+
+    Args:
+        agent_names (list[str]): list of agent names
+        team_size (int): number of agents in each game
+        n_games (int): number of games to sample
+        verbose (bool, optional): this will print the agent, spy, and combination counters. Defaults to False.
+        max_same_agent (int, optional): maximum number of the same agent in a game. Defaults to 2.
+
+    Returns:
+        list[tuple[list[str], int]]: list of tuples containing the agents in each game and the spy index
+    """
+
+    # Initialize counters for fairness
+    agent_count = Counter({agent: 0 for agent in agent_names})
+    spy_count = Counter({agent: 0 for agent in agent_names})
+    game_agents_count = Counter()
+
+    output = []
+    for _ in range(n_games):
+        agent_count_bias = min(agent_count.values())
+        spy_count_bias = min(spy_count.values())
+        game_agents = []
+        while len(game_agents) < team_size:
+            # Select a random agent with weighting based on fairness
+            agent = random.choices(
+                agent_names,
+                weights=[
+                    1 / (agent_count[agent] - agent_count_bias + 1)
+                    for agent in agent_names
+                ],
+            )[0]
+
+            # Ensure at most max_same_agent of the same agent in a game
+            if game_agents.count(agent) < max_same_agent:
+                game_agents.append(agent)
+                agent_count[agent] += 1
+
+        # Randomly assign one agent as the spy, ensuring fairness
+        spy_id, spy_name = random.choices(
+            list(enumerate(game_agents)),
+            weights=[
+                1 / (spy_count[agent] - spy_count_bias + 1) for agent in game_agents
+            ],
+        )[0]
+        spy_count[spy_name] += 1
+        game_agents_count["".join(sorted(game_agents))] += 1
+
+        output.append((game_agents, spy_id))
+
+    if verbose:
+        print(agent_count)
+        print(spy_count)
+        print(game_agents_count)
+
+    return output
 
 
 def import_agents_from_files(glob_pattern: str) -> None:
@@ -202,6 +268,8 @@ def text_to_speech(
 
 
 if __name__ == "__main__":
+    sample_agents(["a", "b", "c", "d", "e", "f"], 4, 100, True)
+
     import pygame
 
     for ps in PITCH_SHIFTS:

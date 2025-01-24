@@ -69,6 +69,7 @@ class Game:
         nlp: NLP,
         player_names: list[str] | None = None,
         n_rounds: int = 20,
+        spy_id: int | None = None,
     ):
         # init game
         if player_names is None:
@@ -79,7 +80,10 @@ class Game:
         self.n_rounds = n_rounds
 
         self.location = random.choice(list(Location))
-        self.spy = random.randint(0, n_players - 1)
+        if spy_id is not None:
+            self.spy = spy_id
+        else:
+            self.spy = random.randint(0, n_players - 1)
         self.questioner = random.randint(0, n_players - 1)
         self.players = []
         self.player_nlps = []

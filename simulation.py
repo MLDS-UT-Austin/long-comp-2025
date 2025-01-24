@@ -50,10 +50,10 @@ class Simulation:
             agent_names (list[str] | None, optional): names of agent classes to use
         """
         assert self.agent_names is not None
-        # Randomly sample agent classes to play in each game
-        sampled_agent_names = [
-            random.sample(self.agent_names, self.team_size) for _ in range(n_games)
-        ]
+        # Randomly sample agent classes and the spy to play in each game
+        sampled_agent_names_and_spies = sample_agents(
+            self.agent_names, self.team_size, n_games
+        )
 
         # Set up progress bar
         tqdm_bar = tqdm(
@@ -64,7 +64,8 @@ class Simulation:
 
         # Run games concurrently
         games = [
-            Game(self.nlp, agents, self.n_rounds) for agents in sampled_agent_names
+            Game(self.nlp, agents, self.n_rounds, spy_id)
+            for agents, spy_id in sampled_agent_names_and_spies
         ]
         for game in games:
             game.tqdm_bar = tqdm_bar
