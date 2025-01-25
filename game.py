@@ -209,7 +209,7 @@ class Game:
     def save_conversation(self, path: str):
         """Saves the conversation to a path
         Converts to 1-indexed player ids"""
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         df = self.get_conversation()
         df["player"] += 1
         df.to_csv(path, index=False)
