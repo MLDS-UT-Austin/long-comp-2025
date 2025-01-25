@@ -214,6 +214,9 @@ class Game:
 
     def render(self):
         """Visualizes the game and plays the audio"""
+        # set audio output to system default
+        os.environ["SDL_AUDIODRIVER"] = "coreaudio"
+
         # setup audio
         sr = self.rounds[0].audio[0][2]
         pygame.mixer.pre_init(frequency=sr, channels=1, allowedchanges=0)

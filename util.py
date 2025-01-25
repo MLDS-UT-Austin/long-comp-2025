@@ -271,6 +271,7 @@ if __name__ == "__main__":
     sample_agents(["a", "b", "c", "d", "e", "f"], 4, 100, True)
 
     import pygame
+    os.environ["SDL_AUDIODRIVER"] = "coreaudio"
 
     for ps in PITCH_SHIFTS:
         for voice in VOICES:
