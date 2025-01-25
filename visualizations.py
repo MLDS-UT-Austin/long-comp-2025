@@ -4,42 +4,11 @@ from pygame.locals import *
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-WIDTH, HEIGHT = 1280, 720
-
 # Load in images of players and spy
 SPY_IMG = pygame.image.load("media/spy.png")
 SPY_IMG = pygame.transform.scale(SPY_IMG, (100, 100))
 PLAYER_IMG = pygame.image.load("media/player.jpg")
 PLAYER_IMG = pygame.transform.scale(PLAYER_IMG, (100, 100))
-
-# Position players on self.screen
-PLAYER4_POS = pygame.Vector2(
-    WIDTH / 4 - SPY_IMG.get_width() / 2, HEIGHT / 4 - SPY_IMG.get_height() / 2
-)
-PLAYER2_POS = pygame.Vector2(
-    WIDTH / 4 - SPY_IMG.get_width() / 2, HEIGHT * 3 / 4 - SPY_IMG.get_height() / 2
-)
-PLAYER3_POS = pygame.Vector2(
-    WIDTH * 3 / 4 - SPY_IMG.get_width() / 2, HEIGHT * 3 / 4 - SPY_IMG.get_height() / 2
-)
-PLAYER1_POS= pygame.Vector2(
-    WIDTH * 3 / 4 - SPY_IMG.get_width() / 2, HEIGHT / 4 - SPY_IMG.get_height() / 2
-)
-
-# Position player labels on self.screen
-LABEL4_POS = text_pos = pygame.Vector2(
-    WIDTH / 4 - SPY_IMG.get_width() / 2, HEIGHT / 4 - 50 - SPY_IMG.get_height() / 2
-)
-LABEL2_POS= pygame.Vector2(
-    WIDTH / 4 - SPY_IMG.get_width() / 2, HEIGHT * 3 / 4 - 50 - SPY_IMG.get_height() / 2
-)
-LABEL3_POS= pygame.Vector2(
-    WIDTH * 3 / 4 - SPY_IMG.get_width() / 2,
-    HEIGHT * 3 / 4 - 50 - SPY_IMG.get_height() / 2,
-)
-LABEL1_POS= pygame.Vector2(
-    WIDTH * 3 / 4 - SPY_IMG.get_width() / 2, HEIGHT / 4 - 50 - SPY_IMG.get_height() / 2
-)
 
 
 class Visualization:
@@ -51,7 +20,7 @@ class Visualization:
         pygame.init()
 
         # Screen dimensions
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
         # Font
         self.font = pygame.font.Font(
@@ -60,6 +29,24 @@ class Visualization:
 
     def __del__(self):
         pygame.quit()
+
+    def render_text(self, player_idx: int, msg: str):
+        self.screen.fill(WHITE)
+
+        # Display spy and player images on self.screen
+        for i in range(4):
+            img = SPY_IMG if i == self.spy_index else PLAYER_IMG
+            self.screen.blit(img, self._player_pos(i) + pygame.Vector2(-50, -50))
+
+        # Display player labels
+        for i, player_name in enumerate(self.player_names):
+            self._render_wrapped_text(player_name, self._label_pos(i))
+
+        # Display the current dialogue
+        self._render_wrapped_text(msg, self._text_pos(player_idx))
+
+        # flip() the display to put your work on self.screen
+        pygame.display.flip()
 
     # Function to wrap text
     def _wrap_text(self, text, font, max_width):
@@ -79,56 +66,51 @@ class Visualization:
         return lines
 
     # Function to render wrapped text using Vector2 for position
-    def _render_wrapped_text(
-        self, text, font, color, position, max_width, line_spacing=5
-    ):
+    def _render_wrapped_text(self, text, pos, color=BLACK, line_spacing=5):
         """Render text wrapped to fit within a specific width using a Vector2 for position."""
-        lines = self._wrap_text(text, font, max_width)
+        lines = self._wrap_text(text, self.font, 0.4 * self._screen_width)
+
+        if len(lines) > 7:
+            lines = lines[:7]
+            lines[-1] = lines[-1] + " ..."
+
         for i, line in enumerate(lines):
-            text_surface = font.render(line, True, color)
-            line_position = position + pygame.Vector2(
-                0, i * (font.get_linesize() + line_spacing)
+            text_surface = self.font.render(line, True, color)
+            line_position = pos + pygame.Vector2(
+                -self.font.size(line)[0] / 2,
+                i * (self.font.get_linesize() + line_spacing),
             )
             self.screen.blit(text_surface, line_position)
 
-    def render_text(self, player_idx: int, msg: str):
-        self.screen.fill(WHITE)
+    @property
+    def _screen_width(self):
+        return self.screen.get_size()[0]
 
-        # Display spy and player images on self.screen
-        for i, pos in enumerate([PLAYER1_POS, PLAYER2_POS, PLAYER3_POS, PLAYER4_POS]):
-            img = SPY_IMG if i == self.spy_index else PLAYER_IMG
-            self.screen.blit(img, pos)
+    @property
+    def _screen_height(self):
+        return self.screen.get_size()[1]
 
-        # From player number, get text position
-        if player_idx == 1:
-            text_pos = pygame.Vector2(
-                WIDTH / 4 - SPY_IMG.get_width() / 2,
-                HEIGHT / 4 + 100 - SPY_IMG.get_height() / 2,
-            )
-        elif player_idx == 2:
-            text_pos = pygame.Vector2(
-                WIDTH * 3 / 4 - SPY_IMG.get_width() / 2,
-                HEIGHT / 4 + 100 - SPY_IMG.get_height() / 2,
-            )
-        elif player_idx == 3:
-            text_pos = pygame.Vector2(
-                WIDTH / 4 - SPY_IMG.get_width() / 2,
-                HEIGHT * 3 / 4 + 100 - SPY_IMG.get_height() / 2,
-            )
-        else:
-            text_pos = pygame.Vector2(
-                WIDTH * 3 / 4 - SPY_IMG.get_width() / 2,
-                HEIGHT * 3 / 4 + 100 - SPY_IMG.get_height() / 2,
-            )
+    def _pos(self, player_idx: int, offset: int):
+        top = player_idx % 2
+        bottom = int(player_idx / 2)
+        return pygame.Vector2(
+            self._screen_width * (top * 2 + 1) / 4,
+            self._screen_height * (bottom * 1.83 + 1) / 4 + offset,
+        )
 
-        # Display player labels
-        for i, pos in enumerate([LABEL1_POS, LABEL2_POS, LABEL3_POS, LABEL4_POS]):
-            self._render_wrapped_text(
-                self.player_names[i], self.font, BLACK, pos, WIDTH / 4
-            )
+    def _player_pos(self, player_idx: int):
+        return self._pos(player_idx, -65)
 
-        # Display the current dialogue
-        self._render_wrapped_text(msg, self.font, BLACK, text_pos, WIDTH / 4)
+    def _label_pos(self, player_idx: int):
+        return self._pos(player_idx, -150)
 
-        # flip() the display to put your work on self.screen
-        pygame.display.flip()
+    def _text_pos(self, player_idx: int):
+        return self._pos(player_idx, 0)
+
+
+if __name__ == "__main__":
+    vis = Visualization(["Player 1", "Player 2", "Player 3", "Player 4"], 0)
+    while True:
+        for i in range(4):
+            vis.render_text(i, "This is too long to fit on one line. " * 20)
+            pygame.time.wait(2000)
