@@ -12,9 +12,10 @@ PLAYER_IMG = pygame.transform.scale(PLAYER_IMG, (100, 100))
 
 
 class Visualization:
-    def __init__(self, player_names: list[str], spy_index: int):
+    def __init__(self, player_names: list[str], spy_index: int, location: str):
         self.player_names = player_names
         self.spy_index = spy_index
+        self.location = location
 
         # Initialize pygame
         pygame.init()
@@ -32,6 +33,8 @@ class Visualization:
 
     def render_text(self, player_idx: int, msg: str):
         self.screen.fill(WHITE)
+        text_surface = self.font.render(f"Location: {self.location}", True, BLACK)
+        self.screen.blit(text_surface, pygame.Vector2(20, 20))
 
         # Display spy and player images on self.screen
         for i in range(4):
@@ -109,7 +112,7 @@ class Visualization:
 
 
 if __name__ == "__main__":
-    vis = Visualization(["Player 1", "Player 2", "Player 3", "Player 4"], 0)
+    vis = Visualization(["Player 1", "Player 2", "Player 3", "Player 4"], 0, "Beach")
     while True:
         for i in range(4):
             vis.render_text(i, "This is too long to fit on one line. " * 20)

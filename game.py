@@ -234,7 +234,7 @@ class Game:
         pygame.init()
 
         # init visualization
-        vis = Visualization(self.player_names, self.spy)
+        vis = Visualization(self.player_names, self.spy, self.location.value)
 
         for round in self.rounds:
             round.render(vis)
