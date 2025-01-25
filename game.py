@@ -191,6 +191,15 @@ class Game:
                 columns: player id, message
         """
         conv_list = list(chain(*[round.get_conversation() for round in self.rounds]))
+
+        if self.game_state == GameState.NO_ONE_INDICTED:
+            no_one_indicted_msg = random.choice(NO_ONE_INDICTED_RESPONSE)
+            player = random.choice(list(set(range(self.n_players)) - {self.spy}))
+            conv_list.append((player, no_one_indicted_msg))
+
+            spy_reveal_msg = random.choice(SPY_REVEAL)
+            conv_list.append((self.spy, spy_reveal_msg))
+
         df = pd.DataFrame(conv_list, columns=["player", "message"])
         df["player_name"] = df["player"].apply(lambda x: self.player_names[x])
         # set column order to player, player_name, message

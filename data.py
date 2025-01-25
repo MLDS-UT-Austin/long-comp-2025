@@ -117,6 +117,12 @@ NON_SPY_INDICTED_RESPONSE = (
     "Nope, not the spy.",
 )
 
+NO_ONE_INDICTED_RESPONSE = (
+    "Game over! Who was the spy?",
+    "Game's over! Who's the spy?",
+    "Looks like no one was was indicted. Who was the spy?",
+)
+
 SPY_REVEAL = (
     "Muah ha ha! I was the spy all along!",
     "Jokes on you all! I was the spy!",
