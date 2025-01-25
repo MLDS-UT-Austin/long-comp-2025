@@ -27,7 +27,7 @@ def main():
 
     # clear the output directory
     if os.path.exists(OUTPUT_DIR):
-        print(f"Files in {OUTPUT_DIR} will be deleted. Continue? [y/n]")
+        print(f"Files in '{OUTPUT_DIR}' will be deleted. Continue? [y/n]")
         if input().lower() != "y":
             return
         shutil.rmtree(OUTPUT_DIR)
