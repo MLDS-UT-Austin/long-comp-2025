@@ -413,14 +413,11 @@ class Round:
 
     def pregenerate_audio(self):
         """pre-generates audio for the game"""
-        random.seed(42)
-        voices = random.sample(VOICES, self.game.n_players)
-        pitch_shifts = random.sample(PITCH_SHIFTS, self.game.n_players)
         # list of (player, audio, sr)
         self.audio: list[int, np.ndarray, int] = []
         for player, message in self.get_conversation():
-            voice = voices[player]
-            ps = pitch_shifts[player]
+            message = message.replace("<out of tokens>", "")
+            voice, ps = get_voice_and_ps(self.game.player_names[player])
             audio, sr = text_to_speech(message, voice, ps)
             self.audio.append((player, audio, sr))
 

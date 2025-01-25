@@ -221,7 +221,7 @@ PITCH_SHIFTS = [0.7, 0.85, 1.0, 1.15]
 def text_to_speech(
     text, voice: tuple[str, str] = ("en", "com.au"), pitch_shift_factor: float = 1.0
 ) -> tuple[np.ndarray, int]:
-    """_summary_
+    """Convert text to speech using Google Text-to-Speech
 
     Args:
         text (_type_): The text to convert to speech
@@ -265,6 +265,20 @@ def text_to_speech(
     x = x.astype(np.int16)
 
     return x, sr
+
+def get_voice_and_ps(player_name: str) -> tuple[tuple[str, str], float]:
+    """Get the voice and pitch shift for a player based on their name
+
+    Args:
+        player_name (str): The player's name
+
+    Returns:
+        tuple[tuple[str, str], float]: The voice and pitch shift
+    """
+    voice = VOICES[hash(player_name) % len(VOICES)]
+    pitch_shift = PITCH_SHIFTS[hash(player_name) % len(PITCH_SHIFTS)]
+    return voice, pitch_shift
+    
 
 
 if __name__ == "__main__":
