@@ -94,11 +94,11 @@ SPY_GUESS_WRONG_RESPONSE = (
 )
 
 ACCUSATION = (
-    "I think it's player {spy}. Are you the spy?",
-    "I accuse player {spy} of being the spy. Are you the spy?",
-    "I suspect player {spy} of being the spy. Is it you?",
-    "I have a feeling it's player {spy}. Are you the spy?",
-    "I think player {spy} is the spy. Are you the spy?",
+    "I think it's {spy}. Are you the spy?",
+    "I accuse {spy} of being the spy. Are you the spy?",
+    "I suspect {spy} of being the spy. Is it you?",
+    "I have a feeling it's {spy}. Are you the spy?",
+    "I think {spy} is the spy. Are you the spy?",
 )
 
 SPY_INDICTED_RESPONSE = (

@@ -350,10 +350,11 @@ class Round:
     def get_conversation(self) -> list[tuple[int, str]]:
         """returns the conversation as a list of tuples of player index and their message"""
         game = self.game
+        names = self.game.player_names
         output = []
 
         # question and answer
-        output.append((self.questioner, f"Player {self.answerer + 1}, {self.question}"))
+        output.append((self.questioner, f"{names[self.answerer]}, {self.question}"))
         output.append((self.answerer, self.answer))
 
         # spy guess
@@ -380,7 +381,7 @@ class Round:
             accuser = random.choice(
                 [i for i, x in enumerate(self.player_votes) if x == self.indicted]
             )
-            msg = random.choice(ACCUSATION).format(spy=self.indicted + 1)
+            msg = random.choice(ACCUSATION).format(spy=names[self.indicted])
             output.append((accuser, msg))
             if game.game_state == GameState.SPY_INDICTED:
                 # spy: I am the spy
