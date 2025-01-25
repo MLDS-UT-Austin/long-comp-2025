@@ -222,6 +222,8 @@ class Game:
             round.pregenerate_audio()
 
     def render(self):
+        assert self.rounds[0].audio, "need to pregenerate audio first"
+
         """Visualizes the game and plays the audio"""
         # set audio output to system default
         os.environ["SDL_AUDIODRIVER"] = "coreaudio"
