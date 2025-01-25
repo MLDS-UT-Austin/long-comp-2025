@@ -301,7 +301,7 @@ class TokenCounterWrapper:
         if self.remaining_tokens is not None:
             self.remaining_tokens -= self.nlp.count_llm_tokens(prompt)
             if self.remaining_tokens <= 0:
-                return ""
+                return "<out of tokens>"
 
             if max_output_tokens is None:
                 max_output_tokens = self.remaining_tokens
@@ -310,6 +310,10 @@ class TokenCounterWrapper:
 
             output = await self.nlp.prompt_llm(prompt, max_output_tokens, temperature)
             self.remaining_tokens -= self.nlp.count_llm_tokens(output)
+
+            if self.remaining_tokens <= 0:
+                output += " <out of tokens>"
+
         return output
 
     async def get_embeddings(
