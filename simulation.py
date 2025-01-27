@@ -34,6 +34,7 @@ class Simulation:
         msg = f"the number of agents ({len(self.agent_names)}) must be at least the team size ({self.team_size})"
         assert len(self.agent_names) >= self.team_size, msg
         self.games: list[Game] = []
+        self.load_games()
 
     def validate_agents(self):
         for name in set(self.agent_names):
@@ -87,7 +88,10 @@ class Simulation:
         for i, game in enumerate(
             tqdm(self.games, desc="Pickling games", colour="green")
         ):
-            with open(f"{self.gave_save_dir}/game_{i}.pkl", "wb") as f:
+            path = f"{self.gave_save_dir}/game_{i}.pkl"
+            if os.path.exists(path):
+                continue
+            with open(path, "wb") as f:
                 pickle.dump(game, f)
 
     def load_games(self):
@@ -185,7 +189,7 @@ class Simulation:
             percent_complete = animation_i / (duration * fps)
 
             # adjust growth rate here to be non-linear if desired
-            i = int(percent_complete * len(df))
+            i = int(min(percent_complete, 1) * len(df))
 
             x = df.index[:i]
             for j, line in enumerate(lines):
@@ -202,7 +206,7 @@ class Simulation:
         ani = animation.FuncAnimation(
             fig,
             animate,
-            frames=duration * fps,
+            frames=duration * fps + 1,
             interval=1000 / fps,
             repeat=False,
         )
