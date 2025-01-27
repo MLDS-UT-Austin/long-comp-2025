@@ -48,7 +48,7 @@ def main():
         # Check if there are commits by other authors
         for commit in commits:
             author = commit.author.login if commit.author else None
-            if author and author.lower() not in WHITE_LIST:
+            if author is None or author.lower() not in WHITE_LIST:
                 filtered_repos.append(repo)
                 break
 
