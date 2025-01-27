@@ -189,7 +189,7 @@ def rate_limit(requests_per_second: int):
                 )
                 last_time = time.monotonic()
             while True:
-                wait_time = 0.01
+                wait_time = 0.1
                 try:
                     return await func(*args, **kwargs)
                 except RateLimitError:

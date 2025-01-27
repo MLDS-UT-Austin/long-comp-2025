@@ -89,8 +89,6 @@ class Simulation:
             tqdm(self.games, desc="Pickling games", colour="green")
         ):
             path = f"{self.gave_save_dir}/game_{i}.pkl"
-            if os.path.exists(path):
-                continue
             with open(path, "wb") as f:
                 pickle.dump(game, f)
 
