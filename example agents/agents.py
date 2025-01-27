@@ -10,6 +10,10 @@ from data import Location, redaction_dict
 from nlp import LLMRole, NLPProxy
 from util import redact
 
+ACCUSE_PROB = 0.9
+ACCUSE_NOISE = 0.05
+GUESS_THRESHOLD = 1.0  # was 0.5
+
 
 @register_agent("MLDS 0")
 class MLDS0(Agent):
@@ -169,7 +173,15 @@ class MLDS0(Agent):
         reponse = await self.nlp.prompt_llm(prompt, 10, 0.25)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
-            self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)
+            # Averaging spy scores per player
+            if self.answerer_count[answerer - 1] == 1:
+                self.avg_spy_score[answerer - 1] += prob
+            else:
+                # Recalculate weighted average
+                current_count = self.answerer_count[answerer - 1]
+                self.avg_spy_score[answerer - 1] = (
+                    self.avg_spy_score[answerer - 1] * (current_count - 1) + prob
+                ) / current_count
 
     async def analyze_response(
         self,
@@ -193,7 +205,7 @@ class MLDS0(Agent):
         # if the top location score is 0.5 higher than the second highest, guess that location
         loc_scores = list(self.avg_loc_score.items())
         loc_scores.sort(key=lambda x: x[1], reverse=True)
-        if loc_scores[0][1] - loc_scores[1][1] > 0.5:
+        if loc_scores[0][1] - loc_scores[1][1] > GUESS_THRESHOLD:
             return loc_scores[0][0]
         return None
 
@@ -203,7 +215,13 @@ class MLDS0(Agent):
                 return random.randint(1, self.n_players - 1)
             return self.most_voted_player
         else:
-            if self.est_n_rounds_remaining <= 2:
+            if (
+                self.avg_spy_score[np.argmax(self.avg_spy_score)] >= 0.5
+                and random.random() < ACCUSE_PROB
+            ):
+                score = self.avg_spy_score + ACCUSE_NOISE * np.random.normal(
+                    0, 1, size=(self.n_players - 1)
+                )
                 player = int(np.argmax(self.avg_spy_score)) + 1
                 return player
             return None
@@ -378,7 +396,15 @@ class MLDS1(Agent):
         reponse = await self.nlp.prompt_llm(prompt, 10, 0.25)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
-            self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)
+            # Averaging spy scores per player
+            if self.answerer_count[answerer - 1] == 1:
+                self.avg_spy_score[answerer - 1] += prob
+            else:
+                # Recalculate weighted average
+                current_count = self.answerer_count[answerer - 1]
+                self.avg_spy_score[answerer - 1] = (
+                    self.avg_spy_score[answerer - 1] * (current_count - 1) + prob
+                ) / current_count
 
     async def analyze_response(
         self,
@@ -402,7 +428,7 @@ class MLDS1(Agent):
         # if the top location score is 0.5 higher than the second highest, guess that location
         loc_scores = list(self.avg_loc_score.items())
         loc_scores.sort(key=lambda x: x[1], reverse=True)
-        if loc_scores[0][1] - loc_scores[1][1] > 0.5:
+        if loc_scores[0][1] - loc_scores[1][1] > GUESS_THRESHOLD:
             return loc_scores[0][0]
         return None
 
@@ -412,7 +438,13 @@ class MLDS1(Agent):
                 return random.randint(1, self.n_players - 1)
             return self.most_voted_player
         else:
-            if self.est_n_rounds_remaining <= 2:
+            if (
+                self.avg_spy_score[np.argmax(self.avg_spy_score)] >= 0.5
+                and random.random() < ACCUSE_PROB
+            ):
+                score = self.avg_spy_score + ACCUSE_NOISE * np.random.normal(
+                    0, 1, size=(self.n_players - 1)
+                )
                 player = int(np.argmax(self.avg_spy_score)) + 1
                 return player
             return None
@@ -587,7 +619,15 @@ class MLDS2(Agent):
         reponse = await self.nlp.prompt_llm(prompt, 10, 0.25)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
-            self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)
+            # Averaging spy scores per player
+            if self.answerer_count[answerer - 1] == 1:
+                self.avg_spy_score[answerer - 1] += prob
+            else:
+                # Recalculate weighted average
+                current_count = self.answerer_count[answerer - 1]
+                self.avg_spy_score[answerer - 1] = (
+                    self.avg_spy_score[answerer - 1] * (current_count - 1) + prob
+                ) / current_count
 
     async def analyze_response(
         self,
@@ -611,7 +651,7 @@ class MLDS2(Agent):
         # if the top location score is 0.5 higher than the second highest, guess that location
         loc_scores = list(self.avg_loc_score.items())
         loc_scores.sort(key=lambda x: x[1], reverse=True)
-        if loc_scores[0][1] - loc_scores[1][1] > 0.5:
+        if loc_scores[0][1] - loc_scores[1][1] > GUESS_THRESHOLD:
             return loc_scores[0][0]
         return None
 
@@ -621,7 +661,13 @@ class MLDS2(Agent):
                 return random.randint(1, self.n_players - 1)
             return self.most_voted_player
         else:
-            if self.est_n_rounds_remaining <= 2:
+            if (
+                self.avg_spy_score[np.argmax(self.avg_spy_score)] >= 0.5
+                and random.random() < ACCUSE_PROB
+            ):
+                score = self.avg_spy_score + ACCUSE_NOISE * np.random.normal(
+                    0, 1, size=(self.n_players - 1)
+                )
                 player = int(np.argmax(self.avg_spy_score)) + 1
                 return player
             return None
@@ -810,7 +856,15 @@ class NLPMeeting(Agent):
         reponse = await self.nlp.prompt_llm(prompt, 10, 0.25)
         prob = self._get_float_from_str(reponse)
         if prob is not None:
-            self.avg_spy_score[answerer - 1] += prob - 1 / (self.n_players - 1)
+            # Averaging spy scores per player
+            if self.answerer_count[answerer - 1] == 1:
+                self.avg_spy_score[answerer - 1] += prob
+            else:
+                # Recalculate weighted average
+                current_count = self.answerer_count[answerer - 1]
+                self.avg_spy_score[answerer - 1] = (
+                    self.avg_spy_score[answerer - 1] * (current_count - 1) + prob
+                ) / current_count
 
     async def analyze_response(
         self,
@@ -834,7 +888,7 @@ class NLPMeeting(Agent):
         # if the top location score is 0.5 higher than the second highest, guess that location
         loc_scores = list(self.avg_loc_score.items())
         loc_scores.sort(key=lambda x: x[1], reverse=True)
-        if loc_scores[0][1] - loc_scores[1][1] > 0.5:
+        if loc_scores[0][1] - loc_scores[1][1] > GUESS_THRESHOLD:
             return loc_scores[0][0]
         return None
 
@@ -844,7 +898,13 @@ class NLPMeeting(Agent):
                 return random.randint(1, self.n_players - 1)
             return self.most_voted_player
         else:
-            if self.est_n_rounds_remaining <= 2:
+            if (
+                self.avg_spy_score[np.argmax(self.avg_spy_score)] >= 0.5
+                and random.random() < ACCUSE_PROB
+            ):
+                score = self.avg_spy_score + ACCUSE_NOISE * np.random.normal(
+                    0, 1, size=(self.n_players - 1)
+                )
                 player = int(np.argmax(self.avg_spy_score)) + 1
                 return player
             return None
